@@ -1,0 +1,11 @@
+node_modules/
+dist/
+public/
+index.html
+research/
+.wrangler/
+.sites-runtime/
+.env*
+*.tar.gz
+*.zip
+__pycache__/
