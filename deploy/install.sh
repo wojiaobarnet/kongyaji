@@ -27,12 +27,15 @@ for root in ['/etc/nginx/sites-enabled','/etc/nginx/conf.d']:
    if host in names.split():raise SystemExit('Hostname is already configured in '+str(p))
 PY
 mkdir -p "$DEST" "$DATA" "$BASE/backups" /opt/donghan
+# The service runs as www-data and must traverse release and runtime parents.
+chmod 755 "$BASE" "$BASE/releases" /opt/donghan
 chmod 700 "$DATA"
 cp -a "$PACKAGE_ROOT/dist" "$PACKAGE_ROOT/worker" "$PACKAGE_ROOT/server" "$PACKAGE_ROOT/drizzle" "$PACKAGE_ROOT/node_modules" "$PACKAGE_ROOT/package.json" "$DEST/"
 if [[ -x "$PACKAGE_ROOT/runtime/bin/node" ]]; then
  RUNTIME_VERSION=$("$PACKAGE_ROOT/runtime/bin/node" -p 'process.versions.node')
  RUNTIME_DEST="/opt/donghan/node-$RUNTIME_VERSION"
  if [[ ! -x "$RUNTIME_DEST/bin/node" ]]; then mkdir -p "$RUNTIME_DEST"; cp -a "$PACKAGE_ROOT/runtime/." "$RUNTIME_DEST/"; fi
+ chmod -R a+rX "$RUNTIME_DEST"
  NODE="$RUNTIME_DEST/bin/node"
 elif command -v node >/dev/null && node -e 'process.exit(Number(process.versions.node.split(".")[0])>=24?0:1)'; then
  NODE=$(command -v node)
