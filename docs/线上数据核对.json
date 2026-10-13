@@ -1,0 +1,39 @@
+{
+  "checked_at": "2026/10/13 15:52:38",
+  "timezone": "Asia/Shanghai",
+  "site_url": "https://donghan.zanyvole3.chatgpt.site",
+  "code_commit": "732bdfbf8697243addc449e5e6b760edfde8c117",
+  "binding": "DB",
+  "tables": [
+    {
+      "table": "cms_documents",
+      "returned": 0,
+      "hasMore": false,
+      "truncated": false,
+      "nextOffset": null
+    },
+    {
+      "table": "cms_media",
+      "returned": 0,
+      "hasMore": false,
+      "truncated": false,
+      "nextOffset": null
+    },
+    {
+      "table": "cms_revisions",
+      "returned": 0,
+      "hasMore": false,
+      "truncated": false,
+      "nextOffset": null
+    },
+    {
+      "table": "inquiries",
+      "returned": 0,
+      "hasMore": false,
+      "truncated": false,
+      "nextOffset": null
+    }
+  ],
+  "server_deployed": false,
+  "hosted_code_commit": "09d1860e41feb5de10938dd16bad4b123a422813"
+}

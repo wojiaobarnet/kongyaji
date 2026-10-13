@@ -1,4 +1,28 @@
-# 東悍网站与内容管理
+# 東悍 donghan 网站与内容管理后台
+
+完整电脑前台、手机版及内容管理后台已经实现。Ubuntu 版通过 Node 24、SQLite 和本地图片存储独立运行，管理员使用本机账号登录。
+
+- **交给部署 AI：** 先读 [部署交接说明](docs/给接手AI的部署说明.txt)。
+- **项目文档：** [Markdown](docs/项目文档.md) · [PDF](docs/项目文档.pdf)。
+- **已构建部署包、完整源码包、文档包：** [Releases 下载](https://github.com/wojiaobarnet/kongyaji/releases)。
+- **托管前台：** https://donghan.zanyvole3.chatgpt.site/ ；后台为 `/admin/`，当前托管版保持所有者私有。
+- **服务器状态：** `159.75.67.132` 尚未部署，原有站点未改动。
+
+## Ubuntu 部署
+
+使用已构建包时无需安装 npm 依赖或重新构建。下载 `donghan-website.zip`，解压后先核对服务器架构、已有 nginx 站点及占用端口：
+
+```bash
+chmod +x runtime/bin/node deploy/install.sh
+sudo bash deploy/install.sh donghan.159-75-67-132.sslip.io 8010
+```
+
+上面的域名为临时 Host，尚未在目标服务器实际部署验证；已有域名时改用实际域名，端口选择闲置回环端口。脚本创建独立虚拟主机，保留已有默认站点。
+
+首次管理员为 `admin`，随机初始密码保存在服务器 `/var/lib/donghan/initial-login.txt`。数据库、图片和管理员配置保存在 `/var/lib/donghan`；升级保留。详细步骤及源码重建方式见 [部署说明](deploy/README.md) 和 [项目文档](docs/项目文档.md)。
+
+## 原始镜像与开发说明
+
 
 完整保留原站可公开访问的电脑及手机页面、原始布局、产品详情、新闻正文、案例、服务、联系资料、分页、图片和轮播交互。快照来源为 `http://www.kaishansales.com/` 与 `http://m.kaishansales.com/`；主域名首页与 www 首页相同。
 
@@ -8,7 +32,7 @@
 - 389 个原站页面、324 个资源文件（详见 `replica-inventory.json`）。
 - 购买咨询：`/consultation/` 与 `/mobile/listinfo-6-0.html`，独立接口 `/api/inquiries` 将留言保存到复刻站的 Cloudflare D1 数据库。
 
-## 运行
+## 托管版的本机开发
 
 需要 Node.js 22.13+、Python 3、npm。
 

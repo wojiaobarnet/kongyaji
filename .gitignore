@@ -13,3 +13,11 @@ research/
 __pycache__/
 
 .server-data/
+
+# Deployment credentials and databases stay outside source control.
+*.pem
+*.key
+*.p12
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal

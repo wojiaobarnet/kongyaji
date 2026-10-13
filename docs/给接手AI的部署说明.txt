@@ -1,0 +1,44 @@
+请接手部署已经完成的「東悍 donghan」网站，前台与后台均已实现。不要重新复刻或重新设计页面。
+
+交付文件：
+1. donghan-website.zip：已经构建、可部署，包含 Node 24 Linux x64、生产依赖、完整前台和后台、SQLite 迁移及安装脚本。
+2. donghan-project.zip：完整源码与镜像，用于修改和重建。
+3. donghan-documents.zip：说明书 PDF/Markdown、部署资料与交接信息。
+
+目前状态：
+- 托管预览已发布：https://donghan.zanyvole3.chatgpt.site/；后台 /admin/，所有者私有。
+- 目标服务器 159.75.67.132 尚未部署，没有改动其现有站点和服务。
+- 部署停止的原因是之前 AI 的云工作环境不支持到公网服务器的 SSH 连接。无需继续配置那个环境的 Tailscale/VPN；请使用你自己支持正常 SSH 的执行环境。
+- 交付代码版本：732bdfbf8697243addc449e5e6b760edfde8c117。托管发布基线为 09d1860e41feb5de10938dd16bad4b123a422813；交付新增修正了安装目录的服务用户访问权限。
+
+服务器资料由用户提供，需连接后核验：
+- SSH：ubuntu@159.75.67.132:22；用户提供 waxiang1.pem 私钥，未打包到项目里。
+- Ubuntu 24.04 LTS，nginx 1.24.0，ubuntu 可免密 sudo。
+- 已有站点目录：/var/www/cx、/var/www/taocanlinqu、/var/www/kuangdai。
+- 已有回环端口：8000、8001。外部已知 Web 端口只有 80。
+- 之前 HTTP 查看 IP 首页显示已有「匠木坊」网站，不要覆盖默认站点。
+
+部署要求：
+1. 先读取服务器架构、现有 nginx 虚拟主机、占用端口、磁盘与服务；保护已有网站。
+2. 本部署包运行时为 Linux x64。若服务器不是 x86_64，更换为对应架构的 Node 24。
+3. 将 donghan-website.zip 上传到服务器临时目录，解压并进入根目录。恢复可执行权限：
+   chmod +x runtime/bin/node deploy/install.sh
+4. 已有自有域名则用实际域名；暂未提供自有域名，可使用临时 Host donghan.159-75-67-132.sslip.io，DNS 指向 159.75.67.132。该临时地址未在目标服务器安装验证。
+5. 确认 8010 未被占用后执行：
+   sudo bash deploy/install.sh donghan.159-75-67-132.sslip.io 8010
+   上述域名和端口可按实际情况调整。脚本保留现有默认站点，仅创建 donghan 的独立 Host 路由。
+6. 网站目录 /var/www/donghan；数据目录 /var/lib/donghan；服务 donghan.service。
+7. 首次账号 admin，随机初始密码保存在 /var/lib/donghan/initial-login.txt。已有管理员配置不会被升级覆盖。
+8. 对外实际访问源必须与 systemd 的 PUBLIC_URL 一致。改 HTTPS 时也更新 PUBLIC_URL 并重启服务。
+9. 不是纯静态站：nginx 需要代理到 server/runtime.mjs。Ubuntu 版采用本地 SQLite 与上传目录，不需要 Cloudflare、R2、D1 或 ChatGPT 登录。
+10. 数据核对时线上 cms_documents、cms_media、cms_revisions、inquiries 均为空，无另行需导入的用户数据。原始内容从 dist/client/cms 及页面文件读取；迁移建立业务表。
+
+最终验收：
+- 前台和手机版可访问，导航、详情、图片正确，显示東悍。
+- 后台管理员可以登录、修改密码、上传并应用图片。
+- 草稿不影响前台，发布后电脑/手机同步，新增和下架正常。
+- 留言能保存和处理；重启后数据库及上传图片保留。
+- 现有网站保持可访问，nginx -t 通过，donghan.service 正常。
+- 向用户给出真实前台/后台 URL、管理员登录资料和验证结果。
+
+完整说明见 项目文档.md 或 项目文档.pdf。原安装脚本见 deploy/install.sh，已有已验证业务逻辑可直接使用。
