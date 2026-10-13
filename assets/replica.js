@@ -1,13 +1,15 @@
 (() => {
   'use strict';
-  const source = window.CMS_PREVIEW_DEVICE || (location.pathname.startsWith('/mobile') ? 'mobile' : 'desktop');
+  const sitePath=window.donghanPath||(value=>value);
+  const localPath=location.pathname.slice((window.DONGHAN_BASE_PATH||'').length);
+  const source = window.CMS_PREVIEW_DEVICE || (localPath.startsWith('/mobile') ? 'mobile' : 'desktop');
   const parameters = new URLSearchParams(location.search);
   if (parameters.get('view') === 'desktop') sessionStorage.setItem('kaishan-view', 'desktop');
   if (parameters.get('view') === 'mobile') sessionStorage.setItem('kaishan-view', 'mobile');
   const mapping = window.KAISHAN_ROUTE || {};
   const smallScreen = Math.min(innerWidth, screen.width) <= 767;
   if (!window.CMS_PREVIEW_DEVICE && source === 'desktop' && sessionStorage.getItem('kaishan-view') !== 'desktop' && smallScreen && mapping.mobile) {
-    location.replace(mapping.mobile + location.hash);
+    location.replace(sitePath(mapping.mobile) + location.hash);
     return;
   }
   document.addEventListener('DOMContentLoaded', () => {
@@ -15,7 +17,7 @@
     switcher.className = 'replica-view-switch';
     const switchLink = document.createElement('a');
     switchLink.textContent = source === 'mobile' ? '电脑版' : '手机版';
-    switchLink.href = (source === 'mobile' ? mapping.desktop || '/' : mapping.mobile || '/mobile/') + '?view=' + (source === 'mobile' ? 'desktop' : 'mobile');
+    switchLink.href = sitePath(source === 'mobile' ? mapping.desktop || '/' : mapping.mobile || '/mobile/') + '?view=' + (source === 'mobile' ? 'desktop' : 'mobile');
     switcher.appendChild(switchLink);
     const footer = document.querySelector(source === 'mobile' ? '#copyright' : '.copyright .w1200');
     if (footer) footer.appendChild(switcher);
@@ -48,7 +50,7 @@
         submissionId ||= crypto.randomUUID();
         button.disabled = true; const label = button.value; button.value = '提交中…'; status.textContent = '';
         try {
-          const response = await fetch('/api/inquiries', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ id: submissionId, name: name.value, phone: phone.value, message: message.value, source }) });
+          const response = await fetch(sitePath('/api/inquiries'), { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ id: submissionId, name: name.value, phone: phone.value, message: message.value, source }) });
           const result = await response.json();
           if (!response.ok || !result.ok) throw new Error(result.error || '提交失败，请稍后重试。');
           status.textContent = '您的咨询已保存到此站点，感谢留言。'; status.style.color = '#08723b'; form.reset(); submissionId = undefined;

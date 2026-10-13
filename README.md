@@ -1,25 +1,32 @@
 # 東悍 donghan 网站与内容管理后台
 
-完整电脑前台、手机版及内容管理后台已经实现。Ubuntu 版通过 Node 24、SQLite 和本地图片存储独立运行，管理员使用本机账号登录。
+网站已部署到 Ubuntu 服务器，电脑前台、手机版、后台、SQLite 与本地图片存储正常运行。
 
-- **交给部署 AI：** 先读 [部署交接说明](docs/给接手AI的部署说明.txt)。
-- **项目文档：** [Markdown](docs/项目文档.md) · [PDF](docs/项目文档.pdf)。
-- **已构建部署包、完整源码包、文档包：** [交付包下载](deliverables/README.md) · [版本说明](https://github.com/wojiaobarnet/kongyaji/releases)。
-- **托管前台：** https://donghan.zanyvole3.chatgpt.site/ ；后台为 `/admin/`，当前托管版保持所有者私有。
-- **服务器状态：** `159.75.67.132` 尚未部署，原有站点未改动。
+- **前台：** http://159.75.67.132/donghan/
+- **手机版：** http://159.75.67.132/donghan/mobile/
+- **后台：** http://159.75.67.132/donghan/uguest/ 。账号 `admin`，初始密码仅保存在服务器私有文件中。
+- **项目文档：** [Markdown](docs/项目文档.md) · [PDF](docs/项目文档.pdf) · [修改记录](docs/CHANGELOG.md)。
+- **接手与升级：** [部署交接](docs/给接手AI的部署说明.txt) · [部署说明](deploy/README.md)。
+- **最新完整源码：** [下载 main 分支](https://github.com/wojiaobarnet/kongyaji/archive/refs/heads/main.zip)。[历史交付包](deliverables/README.md) 是初始快照。
 
-## Ubuntu 部署
+旧 8088 地址自动跳转到 `/donghan/`；旧 `/donghan/admin/` 已返回 404。原服务器其它网站保留。当前为 HTTP，HTTPS 尚未配置。
 
-使用已构建包时无需安装 npm 依赖或重新构建。下载 `donghan-website.zip`，解压后先核对服务器架构、已有 nginx 站点及占用端口：
+## 构建与维护
 
 ```bash
-chmod +x runtime/bin/node deploy/install.sh
-sudo bash deploy/install.sh donghan.159-75-67-132.sslip.io 8010
+npm ci
+npm run build
+npm run check
+node scripts/server-qa.mjs
+node scripts/mount-qa.mjs
+node scripts/uguest-qa.mjs
 ```
 
-上面的域名为临时 Host，尚未在目标服务器实际部署验证；已有域名时改用实际域名，端口选择闲置回环端口。脚本创建独立虚拟主机，保留已有默认站点。
+构建需要 Python 3 与 Node 22.13+；运行 Ubuntu 后端使用 Node 24。当前服务配置为 `PUBLIC_URL=http://159.75.67.132`、`BASE_PATH=/donghan`、`ADMIN_PATH=/uguest`。
 
-首次管理员为 `admin`，随机初始密码保存在服务器 `/var/lib/donghan/initial-login.txt`。数据库、图片和管理员配置保存在 `/var/lib/donghan`；升级保留。详细步骤及源码重建方式见 [部署说明](deploy/README.md) 和 [项目文档](docs/项目文档.md)。
+现有服务器升级：在独立的已构建完整包目录执行 `sudo bash deploy/update.sh`。保留 `/var/lib/donghan`，保留既有 nginx 和上述环境配置；不要使用默认首次安装脚本覆盖现有路由。
+
+每次修改必须同步源码、项目 Markdown/PDF、部署说明、CHANGELOG，并将同一变更同步到 GitHub。维护要求见 [AGENTS.md](AGENTS.md)。
 
 ## 原始镜像与开发说明
 

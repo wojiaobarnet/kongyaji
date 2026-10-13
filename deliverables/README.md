@@ -1,11 +1,17 @@
-# 東悍 donghan 完整交付包
+# 東悍 donghan 交付文件
 
-三个压缩包分别用于直接部署、二次开发与部署交接。由用户请求保存到 GitHub。
+## 最新版本
 
-- [网站部署包](donghan-website.zip)：前台、手机版、后台、Node 24 Linux x64、生产依赖、SQLite 迁移及安装脚本。
-- [项目源码包](donghan-project.zip)：完整源码、镜像、资源、构建与验收脚本。
-- [项目文档包](donghan-documents.zip)：PDF/Markdown、AI 交接说明、服务器资料及校验文件。
+最新完整源码和项目文档以仓库 `main` 分支为准：[下载当前分支源码 ZIP](https://github.com/wojiaobarnet/kongyaji/archive/refs/heads/main.zip)。
 
-先读仓库 [AI 部署交接说明](../docs/给接手AI的部署说明.txt)。服务器 `159.75.67.132` 尚未部署，SSH 私钥需由用户另行提供。
+当前前台 http://159.75.67.132/donghan/ ，后台 /donghan/uguest/ 。[完整项目文档](../docs/项目文档.md) · [PDF](../docs/项目文档.pdf) · [升级说明](../deploy/README.md) · [修改记录](../docs/CHANGELOG.md)。
 
-网站部署包与项目源码包的 SHA256 见 [校验清单](../docs/SHA256SUMS.txt)。这些 ZIP 文件不包含 SSH 私钥、VPN 密钥、生产密码或本地验收数据。
+## 初始交付快照
+
+以下 ZIP 对应初始交付，保留用于恢复、对照和历史记录，**不对应当前生产版本**：
+
+- [网站快照](donghan-website.zip)：原始根路径部署包、Linux x64 Node 24 和生产依赖。
+- [源码快照](donghan-project.zip)：初始完整镜像、源码、构建与验收脚本。
+- [文档快照](donghan-documents.zip)：初始 PDF/Markdown 和尚未部署时的交接状态。
+
+这些快照的校验见 [SHA256 清单](../docs/SHA256SUMS.txt)，只用于核对旧包。升级当前服务器必须使用最新源码和 update.sh，保留 /var/lib/donghan 与现有路由。所有包均不包含 SSH 私钥、生产密码或用户持久数据。

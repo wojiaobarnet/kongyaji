@@ -46,7 +46,8 @@ chown -R root:root "$DEST"
 chmod -R a+rX "$DEST"
 chown -R www-data:www-data "$DATA"
 sudo -u www-data env DATA_ROOT="$DATA" "$NODE" "$DEST/server/setup.mjs"
-OLD_RELEASE=$(readlink -f "$BASE/current" 2>/dev/null || true)
+OLD_RELEASE=""
+if [[ -L "$BASE/current" ]]; then OLD_RELEASE=$(readlink -e "$BASE/current" 2>/dev/null || true); fi
 BACKUP="$BASE/backups/$RELEASE"
 mkdir -p "$BACKUP"
 [[ ! -f "$NGINX" ]] || cp -a "$NGINX" "$BACKUP/nginx.conf"
@@ -57,9 +58,9 @@ fi
 rollback() {
  trap - ERR
  echo 'Verification failed. Restoring previous donghan configuration.'
- if [[ -n "$OLD_RELEASE" ]]; then ln -sfn "$OLD_RELEASE" "$BASE/current"; fi
- if [[ -f "$BACKUP/nginx.conf" ]]; then cp -a "$BACKUP/nginx.conf" "$NGINX"; else rm -f /etc/nginx/sites-enabled/donghan "$NGINX"; fi
- if [[ -f "$BACKUP/donghan.service" ]]; then cp -a "$BACKUP/donghan.service" "$SERVICE"; systemctl daemon-reload; systemctl restart donghan; else systemctl stop donghan || true; rm -f "$SERVICE"; systemctl daemon-reload; fi
+ if [[ -n "$OLD_RELEASE" ]]; then ln -sfn "$OLD_RELEASE" "$BASE/current"; else rm -f "$BASE/current"; fi
+ if [[ -f "$BACKUP/nginx.conf" ]]; then cp -a "$BACKUP/nginx.conf" "$NGINX"; else rm -f /etc/nginx/sites-enabled/zz-donghan "$NGINX"; fi
+ if [[ -f "$BACKUP/donghan.service" ]]; then cp -a "$BACKUP/donghan.service" "$SERVICE"; systemctl daemon-reload; systemctl restart donghan; else systemctl stop donghan || true; systemctl disable donghan || true; rm -f "$SERVICE"; systemctl daemon-reload; fi
  nginx -t && systemctl reload nginx
  exit 1
 }
@@ -107,21 +108,25 @@ server {
  }
 }
 EOF
-ln -sfn "$NGINX" /etc/nginx/sites-enabled/donghan
+ln -sfn "$NGINX" /etc/nginx/sites-enabled/zz-donghan
 nginx -t || rollback
 systemctl daemon-reload
 systemctl enable donghan
 systemctl restart donghan
 READY=0
 for attempt in $(seq 1 20); do
- if curl -fsS "http://127.0.0.1:$APP_PORT/healthz" >/dev/null; then READY=1; break; fi
+ if curl -fsS "http://127.0.0.1:$APP_PORT/healthz" >/dev/null 2>&1; then READY=1; break; fi
  sleep 1
 done
 [[ "$READY" -eq 1 ]] || rollback
 systemctl reload nginx
 CHECK_FILE=$(mktemp)
-curl -fsS -H "Host: $SITE_HOST" http://127.0.0.1/ -o "$CHECK_FILE" || rollback
-grep -q '東悍' "$CHECK_FILE" || rollback
+FRONTEND_READY=0
+for attempt in $(seq 1 15); do
+ if curl -fsS -H "Host: $SITE_HOST" http://127.0.0.1/ -o "$CHECK_FILE" && grep -q '東悍' "$CHECK_FILE"; then FRONTEND_READY=1; break; fi
+ sleep 1
+done
+[[ "$FRONTEND_READY" -eq 1 ]] || rollback
 rm -f "$CHECK_FILE"
 trap - ERR
 echo "Frontend: http://$SITE_HOST/"

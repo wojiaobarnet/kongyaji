@@ -161,7 +161,7 @@ export async function uploadedMedia(request,env){
 async function published(env){
  const {results}=await env.DB.prepare("SELECT id,json_extract(published_json,'$.meta') AS meta FROM cms_documents WHERE published_json<>'' LIMIT 2000").all();return new Map(results.map(r=>[r.id,parse(r.meta)]));
 }
-const previewScript=device=>'<script>window.CMS_PREVIEW_DEVICE='+JSON.stringify(device)+';</script><style>[data-cms-block]:hover{outline:2px solid #ffac30;outline-offset:2px;cursor:pointer!important}body:after{display:none!important}</style><script>document.addEventListener("click",function(e){let el=e.target.closest("[data-cms-block]");e.preventDefault();e.stopPropagation();if(el)parent.postMessage({type:"cms-select",block:el.getAttribute("data-cms-block")},location.origin);},true);</script>';
+const previewScript=device=>'<script>window.CMS_PREVIEW_DEVICE='+JSON.stringify(device)+';</script><style>[data-cms-block]:hover{outline:2px solid #ffac30;outline-offset:2px;cursor:pointer!important}body:after{display:none!important}</style><script>document.addEventListener("click",function(e){let el=e.target.closest("[data-cms-block]");e.preventDefault();e.stopPropagation();if(el)parent.postMessage({type:"cms-select",block:el.getAttribute("data-cms-block")},new URL(document.baseURI).origin);},true);</script>';
 function cards(meta,device){
  const url=escape(device==='mobile'?meta.mobile:meta.desktop),title=escape(meta.title),cover=escape(meta.cover||'/replica/donghan-logo.svg'),description=escape(meta.description||'');
  if(device==='mobile')return '<li class="loop item"><a href="'+url+'"><figure><img src="'+cover+'" alt="'+title+'"></figure><h3 class="tit">'+title+'</h3>'+(meta.kind==='news'?'<p class="txt">'+description+'</p>':'')+'</a></li>';

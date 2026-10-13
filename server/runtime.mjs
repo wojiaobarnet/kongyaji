@@ -6,6 +6,7 @@ import {DatabaseSync} from 'node:sqlite';
 import {createHmac,randomBytes,scryptSync,timingSafeEqual} from 'node:crypto';
 import {HTMLRewriter} from '@worker-tools/html-rewriter/base64';
 import worker from '../worker/index.js';
+import {mountResponse} from './mount.mjs';
 
 globalThis.HTMLRewriter=HTMLRewriter;
 const ROOT=path.resolve(import.meta.dirname,'..');
@@ -13,6 +14,10 @@ const ASSET_ROOT=path.resolve(process.env.ASSET_ROOT||path.join(ROOT,'dist/clien
 const DATA_ROOT=path.resolve(process.env.DATA_ROOT||path.join(ROOT,'.server-data'));
 const PORT=Number(process.env.PORT||8010);
 const PUBLIC_URL=process.env.PUBLIC_URL;
+const BASE_PATH=(process.env.BASE_PATH||'').replace(/\/$/,'');
+const ADMIN_PATH=process.env.ADMIN_PATH||'/admin';
+if(!/^\/[a-zA-Z0-9_-]+$/.test(ADMIN_PATH))throw new Error('Invalid ADMIN_PATH');
+if(BASE_PATH&&!/^\/[a-zA-Z0-9_-]+(?:\/[a-zA-Z0-9_-]+)*$/.test(BASE_PATH))throw new Error('Invalid BASE_PATH');
 await mkdir(path.join(DATA_ROOT,'uploads'),{recursive:true,mode:0o700});
 const configPath=path.join(DATA_ROOT,'admin.json');
 let config;
@@ -71,10 +76,19 @@ const server=http.createServer(async(req,res)=>{
  try{
   const origin=PUBLIC_URL||'http://127.0.0.1:'+PORT;
   const url=new URL(req.url,origin);if(url.origin!==new URL(origin).origin){res.writeHead(400);res.end();return;}
+  if(BASE_PATH){
+   if(url.pathname===BASE_PATH){res.writeHead(308,{Location:BASE_PATH+'/'+url.search});res.end();return;}
+   if(!url.pathname.startsWith(BASE_PATH+'/')){res.writeHead(404);res.end('Not Found');return;}
+   url.pathname=url.pathname.slice(BASE_PATH.length);
+  }
+  if(ADMIN_PATH!=='/admin'){
+   if(url.pathname==='/admin'||url.pathname.startsWith('/admin/')){res.writeHead(404);res.end('Not Found');return;}
+   if(url.pathname===ADMIN_PATH||url.pathname.startsWith(ADMIN_PATH+'/'))url.pathname='/admin'+url.pathname.slice(ADMIN_PATH.length);
+  }
   const chunks=[];let length=0;for await(const chunk of req){length+=chunk.length;if(length>9000000){res.writeHead(413);res.end('Payload Too Large');return;}chunks.push(chunk);}
   const headers=new Headers();for(const [key,value]of Object.entries(req.headers))if(value!==undefined)headers.set(key,Array.isArray(value)?value.join(','):value);
   const request=new Request(url,{method:req.method,headers,body:['GET','HEAD'].includes(req.method)?undefined:Buffer.concat(chunks)});
-  const response=await handle(request,req.headers['x-real-ip']||req.socket.remoteAddress);res.writeHead(response.status,Object.fromEntries(response.headers));if(req.method==='HEAD'){res.end();return;}if(!response.body){res.end();return;}for await(const chunk of response.body)if(!res.write(chunk))await new Promise(resolve=>res.once('drain',resolve));res.end();
+  const response=await mountResponse(await handle(request,req.headers['x-real-ip']||req.socket.remoteAddress),BASE_PATH,new URL(origin).origin,ADMIN_PATH);res.writeHead(response.status,Object.fromEntries(response.headers));if(req.method==='HEAD'){res.end();return;}if(!response.body){res.end();return;}for await(const chunk of response.body)if(!res.write(chunk))await new Promise(resolve=>res.once('drain',resolve));res.end();
  }catch(error){console.error('Request failed:',error.message);if(!res.headersSent)res.writeHead(500,{'Content-Type':'text/plain; charset=utf-8'});res.end('服务暂不可用，请稍后重试。');}
 });
 server.requestTimeout=120000;server.headersTimeout=15000;

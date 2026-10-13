@@ -1,15 +1,16 @@
 window.DonghanMedia = function ({api, toast, dialog, escape, getPurpose}) {
+ const sitePath=window.donghanPath||(value=>value);
  const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
  const purposes={banner:'首页轮播',product:'产品图片',news:'新闻封面',case:'案例图片',content:'正文插图',logo:'标志 / 二维码',other:'其他素材'};
  let cache=null,selected=null,busy=false;
  const options=current=>Object.entries(purposes).map(([id,label])=>'<option value="'+id+'" '+(id===current?'selected':'')+'>'+label+'</option>').join('');
  async function media(){return cache ||= (await api('media')).media;}
  const size=n=>n>1048576?(n/1048576).toFixed(1)+' MB':Math.ceil(n/1024)+' KB';
- function grid(list){return list.map(m=>'<button class="media-card '+(selected===m.url?'selected':'')+'" data-media="'+escape(m.url)+'"><img src="'+escape(m.url)+'" loading="lazy" alt="'+escape(m.name)+'"><div class="media-info"><strong title="'+escape(m.name)+'">'+escape(m.name)+'</strong><small>'+(m.width&&m.height?m.width+' × '+m.height+' px · ':'')+size(m.size)+'</small><small>'+(m.original?'现有素材':purposes[m.purpose]||'已上传')+'</small></div></button>').join('');}
+ function grid(list){return list.map(m=>'<button class="media-card '+(selected===m.url?'selected':'')+'" data-media="'+escape(m.url)+'"><img src="'+escape(sitePath(m.url))+'" loading="lazy" alt="'+escape(m.name)+'"><div class="media-info"><strong title="'+escape(m.name)+'">'+escape(m.name)+'</strong><small>'+(m.width&&m.height?m.width+' × '+m.height+' px · ':'')+size(m.size)+'</small><small>'+(m.original?'现有素材':purposes[m.purpose]||'已上传')+'</small></div></button>').join('');}
  function upload(file,purpose,onProgress){
   return new Promise((resolve,reject)=>{
    if(!/\.(png|jpe?g|gif|webp)$/i.test(file.name)||file.size>8388608||file.size<12){reject(new Error('请选择 8MB 以内的 PNG、JPG、GIF、WebP 图片'));return;}
-   const xhr=new XMLHttpRequest(),form=new FormData();form.append('file',file);form.append('purpose',purpose);xhr.open('POST','/api/admin/upload');xhr.timeout=120000;
+   const xhr=new XMLHttpRequest(),form=new FormData();form.append('file',file);form.append('purpose',purpose);xhr.open('POST',sitePath('/api/admin/upload'));xhr.timeout=120000;
    xhr.upload.onprogress=e=>{if(e.lengthComputable)onProgress(Math.round(e.loaded/e.total*100));};
    xhr.onload=()=>{let data;try{data=JSON.parse(xhr.responseText);}catch{reject(new Error('服务返回异常，请重试'));return;}if(xhr.status>=200&&xhr.status<300){cache=null;resolve(data);}else reject(new Error(data.error||'上传失败'));};xhr.onerror=()=>reject(new Error('网络中断，请重试'));xhr.ontimeout=()=>reject(new Error('上传超时，请重试'));xhr.send(form);
   });
@@ -40,8 +41,8 @@ window.DonghanMedia = function ({api, toast, dialog, escape, getPurpose}) {
   $('#media-search').oninput=render;$('#media-type').onchange=render;$('#media-purpose').onchange=render;bindUploads(async()=>{list=await media();if($('#media-grid'))render();});render();
  }
  function detail(m,refresh){
-  dialog('<h2 class="dialog-heading">图片详情</h2><img class="media-detail-image" src="'+escape(m.url)+'" alt="'+escape(m.name)+'"><div class="media-detail-grid"><div class="field"><label>图片名称</label><input id="media-name" maxlength="200" value="'+escape(m.name)+'" '+(m.original?'readonly':'')+'></div><div class="field"><label>用途</label><select id="media-edit-purpose" '+(m.original?'disabled':'')+'>'+options(m.purpose||'other')+'</select></div></div><p class="note">'+(m.width?m.width+' × '+m.height+' px · ':'')+size(m.size)+(m.created_at?' · 上传于 '+new Date(m.created_at).toLocaleString('zh-CN'):'')+'</p><details><summary>图片地址</summary><input class="search" style="width:100%;margin:12px 0" id="media-url" readonly value="'+escape(m.url)+'"></details><div class="actions"><button class="button" id="copy-media">复制地址</button>'+(!m.original?'<button class="button primary" id="media-edit-save">保存名称与用途</button>':'')+'</div>');
-  $('#copy-media').onclick=async()=>{try{await navigator.clipboard.writeText(m.url);}catch{const input=$('#media-url');input.parentElement.open=true;input.select();document.execCommand('copy');}toast('图片地址已复制');};if($('#media-edit-save'))$('#media-edit-save').onclick=async()=>{try{await api('media-update',{id:m.id,name:$('#media-name').value,purpose:$('#media-edit-purpose').value});cache=null;$('#dialog').close();await refresh();toast('素材信息已保存');}catch(e){toast(e.message);}};
+  dialog('<h2 class="dialog-heading">图片详情</h2><img class="media-detail-image" src="'+escape(sitePath(m.url))+'" alt="'+escape(m.name)+'"><div class="media-detail-grid"><div class="field"><label>图片名称</label><input id="media-name" maxlength="200" value="'+escape(m.name)+'" '+(m.original?'readonly':'')+'></div><div class="field"><label>用途</label><select id="media-edit-purpose" '+(m.original?'disabled':'')+'>'+options(m.purpose||'other')+'</select></div></div><p class="note">'+(m.width?m.width+' × '+m.height+' px · ':'')+size(m.size)+(m.created_at?' · 上传于 '+new Date(m.created_at).toLocaleString('zh-CN'):'')+'</p><details><summary>图片地址</summary><input class="search" style="width:100%;margin:12px 0" id="media-url" readonly value="'+escape(sitePath(m.url))+'"></details><div class="actions"><button class="button" id="copy-media">复制地址</button>'+(!m.original?'<button class="button primary" id="media-edit-save">保存名称与用途</button>':'')+'</div>');
+  $('#copy-media').onclick=async()=>{try{await navigator.clipboard.writeText(sitePath(m.url));}catch{const input=$('#media-url');input.parentElement.open=true;input.select();document.execCommand('copy');}toast('图片地址已复制');};if($('#media-edit-save'))$('#media-edit-save').onclick=async()=>{try{await api('media-update',{id:m.id,name:$('#media-name').value,purpose:$('#media-edit-purpose').value});cache=null;$('#dialog').close();await refresh();toast('素材信息已保存');}catch(e){toast(e.message);}};
  }
  return {picker,view};
 };
