@@ -4,7 +4,7 @@
 
 - **交给部署 AI：** 先读 [部署交接说明](docs/给接手AI的部署说明.txt)。
 - **项目文档：** [Markdown](docs/项目文档.md) · [PDF](docs/项目文档.pdf)。
-- **已构建部署包、完整源码包、文档包：** [Releases 下载](https://github.com/wojiaobarnet/kongyaji/releases)。
+- **已构建部署包、完整源码包、文档包：** [交付包下载](deliverables/README.md) · [版本说明](https://github.com/wojiaobarnet/kongyaji/releases)。
 - **托管前台：** https://donghan.zanyvole3.chatgpt.site/ ；后台为 `/admin/`，当前托管版保持所有者私有。
 - **服务器状态：** `159.75.67.132` 尚未部署，原有站点未改动。
 

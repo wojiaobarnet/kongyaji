@@ -21,3 +21,8 @@ __pycache__/
 *.sqlite
 *.sqlite-shm
 *.sqlite-wal
+
+# Explicit handoff archives for this repository's download directory.
+!deliverables/donghan-website.zip
+!deliverables/donghan-project.zip
+!deliverables/donghan-documents.zip
