@@ -1,12 +1,12 @@
 {
-  "name": "kaishan-sales-replica",
+  "name": "donghan-website",
   "version": "1.0.0",
   "private": true,
   "type": "module",
   "scripts": {
     "build": "python scripts/build.py && vite build",
     "dev": "vite --host 127.0.0.1",
-    "check": "python scripts/verify.py && node --check worker/index.js && node --check assets/replica.js && node --check worker/cms.js && node --check admin/admin.js",
+    "check": "python scripts/verify.py && node --check worker/index.js && node --check assets/replica.js && node --check worker/cms.js && node --check admin/admin.js && node --check admin/media.js && node --check server/runtime.mjs",
     "db:generate": "drizzle-kit generate",
     "db:local": "wrangler d1 migrations apply DB --local --config dist/server/wrangler.json --persist-to .wrangler/state",
     "preview": "node scripts/preview.mjs"
@@ -19,6 +19,7 @@
     "wrangler": "4.92.0"
   },
   "dependencies": {
+    "@worker-tools/html-rewriter": "^0.1.0-pre.19",
     "sanitize-html": "^2.18.0"
   }
 }

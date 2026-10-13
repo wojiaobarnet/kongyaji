@@ -15,6 +15,13 @@
       "when": 1791869836276,
       "tag": "0001_demonic_emma_frost",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1791872791833,
+      "tag": "0002_sweet_doctor_faustus",
+      "breakpoints": true
     }
   ]
 }

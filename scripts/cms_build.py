@@ -1,7 +1,34 @@
 """Index and annotate the retained pages for content management without retemplating."""
-import hashlib,html,json,pathlib,re,urllib.parse
+import hashlib,html,json,pathlib,re,urllib.parse,struct
 from html.parser import HTMLParser
 VOID={'area','base','br','col','embed','hr','img','input','link','meta','param','source','track','wbr'}
+SECTION_LABELS={'banner':'首页轮播','products':'产品展示','cta':'咨询横幅','cases':'客户案例','advantages':'品牌优势','technology':'技术实力','about':'公司介绍','news':'新闻动态','main':'页面内容','common':'页头、导航与页尾'}
+def section_for(n,home):
+ chain=[n]+list(n.ancestors());classes={c for p in chain for c in p.classes()};ids={p.attrs.get('id','') for p in chain}
+ if classes & {'header_main','header','footer_main','footer','toolbar','nav_main','subNav','inav_t','top_main'} or ids & {'top_main','subNav','nav','toolbar'}:return 'common'
+ if not home:return 'main'
+ if 'banner' in ids:return 'banner'
+ for k,tokens in [('products',{'in-prd-cate','in-prd-con','floor_1'}),('cta',{'index_slip','slip'}),('cases',{'case','floor_3','caseList'}),('advantages',{'way','floor_4'}),('technology',{'competence'}),('about',{'about'}),('news',{'inews','floor_5'})]:
+  if classes & tokens:return k
+ if 'irepro' in ids:return 'products'
+ return 'main'
+def dimensions(p):
+ try:
+  b=p.read_bytes()
+  if b[:8]==b'\x89PNG\r\n\x1a\n':return struct.unpack('>II',b[16:24])
+  if b[:3]==b'GIF':return struct.unpack('<HH',b[6:10])
+  if b[:2]==b'\xff\xd8':
+   i=2
+   while i<len(b)-9:
+    if b[i]!=255:i+=1;continue
+    marker=b[i+1];i+=2
+    if marker in (216,217):continue
+    size=int.from_bytes(b[i:i+2],'big')
+    if marker in (192,193,194,195):return int.from_bytes(b[i+5:i+7],'big'),int.from_bytes(b[i+3:i+5],'big')
+    if size<2:break
+    i+=size
+ except (OSError,ValueError,struct.error):pass
+ return (0,0)
 class Node:
  def __init__(self,tag,attrs,start,end,parent):
   self.tag=tag;self.attrs=dict(attrs);self.start=start;self.startend=end;self.end=end;self.parent=parent;self.children=[];self.extra={}
@@ -65,6 +92,8 @@ def generate(output,routes):
     if a and a.attrs.get('href') in pathmap:covers.setdefault(pathmap[a.attrs['href']],n.attrs.get('src',''))
  for meta in catalog:
   meta['cover']=covers.get(meta['id'],'')
+  listing=next((d for d in catalog if d['desktop']==meta['group']),meta)
+  meta['category']=listing['title'].split('_')[0].split('|')[0][:60]
   blocks={}
   for device,url in [('desktop',meta['desktop']),('mobile',meta['mobile'])]:
    if not url:continue
@@ -92,7 +121,13 @@ def generate(output,routes):
      counter+=1;blockid=f'{device}-link-{counter}';typ='link';value=n.attrs['href'];label=t.text(n)[:45] or '图片链接'
     else:continue
     n.extra['data-cms-block']=blockid
-    if blockid not in blocks:blocks[blockid]={'type':typ,'label':label[:80],'value':value,'device':'shared' if blockid=='body' else device}
+    if blockid not in blocks:
+     section='main' if blockid=='body' else section_for(n,meta['kind']=='home')
+     blocks[blockid]={'type':typ,'label':label[:80],'value':value,'device':'shared' if blockid=='body' else device,'section':section,'sectionLabel':SECTION_LABELS[section]}
+     if typ=='image':
+      w,h=dimensions(output/value.lstrip('/'));blocks[blockid].update(width=w,height=h)
+      a=next((p for p in n.ancestors() if p.tag=='a'),None)
+      if a and a.extra.get('data-cms-block'):blocks[blockid]['linkId']=a.extra['data-cms-block']
    for n in t.nodes:
     if n.tag!='a':continue
     ref=pathmap.get(n.attrs.get('href'))
@@ -114,6 +149,8 @@ def generate(output,routes):
  media=[]
  for p in output.rglob('*'):
   if p.suffix.lower() in ('.png','.jpg','.jpeg','.gif','.webp'):
-   media.append({'url':'/'+p.relative_to(output).as_posix(),'name':p.name,'size':p.stat().st_size,'original':True})
+   w,h=dimensions(p);url='/'+p.relative_to(output).as_posix()
+   names=[d['title'].split('_')[0] for d in catalog if d['cover']==url]
+   media.append({'url':url,'name':names[0] if names else p.name,'filename':p.name,'width':w,'height':h,'size':p.stat().st_size,'original':True})
  (output/'cms'/'media.json').write_text(json.dumps(media,ensure_ascii=False))
  print(f'CMS indexed {len(catalog)} documents and {len(media)} original images.')

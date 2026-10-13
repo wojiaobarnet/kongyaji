@@ -32,5 +32,9 @@ export const cmsMedia = sqliteTable('cms_media', {
   key: text('key').notNull(),
   mime: text('mime').notNull(),
   size: integer('size').notNull(),
-  createdAt: text('created_at').notNull()
-});
+  createdAt: text('created_at').notNull(),
+  width: integer('width').notNull().default(0),
+  height: integer('height').notNull().default(0),
+  purpose: text('purpose').notNull().default('other'),
+  hash: text('hash')
+},table=>[uniqueIndex('cms_media_hash').on(table.hash)]);

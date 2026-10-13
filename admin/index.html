@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>東悍网站 · 内容管理</title><link rel="icon" href="/replica/donghan-logo.svg"><link rel="stylesheet" href="/admin/admin.css"><script src="/admin/media.js" defer></script><script src="/admin/admin.js" defer></script></head>
+<body>
+<div class="shell">
+<aside class="sidebar" id="sidebar">
+ <a class="brand" href="/admin/"><span class="brand-mark">東</span><span>東悍网站<small>内容管理工作台</small></span></a>
+ <div class="nav-label">工作台</div><nav id="navigation">
+ <button data-view="overview" class="active"><span>▦</span>概览</button>
+ <button data-view="home"><span>⌂</span>首页与轮播</button>
+ <button data-view="product"><span>◈</span>产品中心</button>
+ <button data-view="news"><span>▤</span>新闻动态</button>
+ <button data-view="case"><span>▧</span>客户案例</button>
+ <button data-view="page"><span>□</span>页面与栏目</button>
+ <div class="nav-label">管理</div>
+ <button data-view="media"><span>▣</span>图片素材</button>
+ <button data-view="inquiries"><span>✉</span>咨询留言 <b id="unread-badge"></b></button>
+ <button data-view="settings"><span>⚙</span>网站设置</button>
+ </nav>
+ <div class="sidebar-bottom"><a href="/" target="_blank" rel="noopener">↗ 查看前台网站</a><div class="account"><span class="avatar">管</span><span id="account-name">正在连接…</span></div></div>
+</aside>
+<main class="main"><header class="topbar"><button class="icon-button mobile-menu" id="menu-toggle" aria-label="打开导航">☰</button><div class="breadcrumbs">网站管理 <span>/</span> <strong id="breadcrumb">概览</strong></div><div class="actions"><span class="connection" id="connection">连接中</span><button class="text-button" id="account-security" hidden>修改密码</button><button class="text-button" id="logout" hidden>退出</button></div></header>
+<div id="workspace" class="workspace"><div class="loading">正在加载网站内容…</div></div></main>
+</div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<dialog id="dialog"><button class="dialog-close" id="dialog-close" aria-label="关闭">×</button><div id="dialog-body"></div></dialog>
+</body></html>

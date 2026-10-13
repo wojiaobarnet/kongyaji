@@ -104,9 +104,16 @@ def main():
   elif path=='/public/js/common.js' and site=='mobile':s='/* Original analytics removed; interactions stay in app.js. */\n'
   elif path=='/public/js/app.js' and site=='mobile':s=s.replace('new Clipboard(btn)', 'new Clipboard(btn || "#btn")')
   elif path=='/public/js/map.js':s='/* Map is embedded in the contact page. */\n'
+  s=s.replace('开山','東悍').replace('/public/images/logo.png','/replica/donghan-logo.svg').replace('/mobile/replica/donghan-logo.svg','/replica/donghan-logo.svg').replace('type="image/png"','type="image/svg+xml"')
   out.write_text(s,encoding='utf-8')
  (OUTPUT/'replica').mkdir()
  for p in (ROOT/'assets').iterdir():shutil.copyfile(p,OUTPUT/'replica'/p.name)
+ # Image rebranding overrides keep the original mirror available for comparison.
+ replacements=ROOT/'branding'
+ if replacements.exists():
+  for p in replacements.rglob('*'):
+   if p.is_file():
+    dest=OUTPUT/p.relative_to(replacements);dest.parent.mkdir(parents=True,exist_ok=True);shutil.copyfile(p,dest)
  (OUTPUT/'replica/transparent.png').write_bytes(base64.b64decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVR42mNgAAIAAAUAAarVyFEAAAAASUVORK5CYII='))
  from cms_build import generate
  generate(OUTPUT,routes)

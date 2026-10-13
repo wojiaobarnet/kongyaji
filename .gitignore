@@ -1,7 +1,7 @@
 node_modules/
 dist/
-public/
-index.html
+/public/
+/index.html
 research/
 .wrangler/
 .sites-runtime/
@@ -11,3 +11,5 @@ research/
 *.tar.gz
 *.zip
 __pycache__/
+
+.server-data/

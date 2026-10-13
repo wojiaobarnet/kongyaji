@@ -25,7 +25,7 @@ if refs:
  remote_sha=refs.split()[0]
  git(['merge-base','--is-ancestor',remote_sha,'HEAD'])
 git(['add','.'])
-git(['-c','user.name=Codex','-c','user.email=codex@openai.com','commit','-m','Add owner-protected CMS with live content publishing, media uploads, and inquiry management'])
+git(['-c','user.name=Codex','-c','user.email=codex@openai.com','commit','-m','Rebrand as Donghan, improve CMS workflows, and add Ubuntu deployment runtime'])
 sha=git(['rev-parse','HEAD'])
 git(['push','sites','HEAD:refs/heads/'+branch],auth=True)
 verified=git(['ls-remote',remote,'refs/heads/'+branch],auth=True).split()[0]
