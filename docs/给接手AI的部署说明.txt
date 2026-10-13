@@ -30,3 +30,8 @@ server/mount.mjs 与 assets/site-path.js 负责公网前缀和后台别名；后
 
 每次修改必须更新完整 Markdown/PDF、README、部署交接和 CHANGELOG，代码和文档一起同步到 wojiaobarnet/kongyaji。核对远端提交后才报告已同步，发布版本记录在服务器 current/REVISION。
 不得发布 SSH 私钥、生产密码、会话密钥、数据库、上传文件或浏览器登录状态。
+
+SEO/GEO：继续用现有 IP。worker/seo.js 生成标题摘要、canonical、社交元数据、WebSite/WebPage/BreadcrumbList、地图、robots、可选 llms 索引与选型指南。worker/cms.js 只取公开的已发布元数据。lastmod 来自已发布版本时间，不能用草稿更新时间。电脑与手机关联，新闻第二页映射已修复。
+新增 /donghan/guide/、/donghan/sitemap.xml、/donghan/robots.txt 和 /donghan/llms.txt。根 /robots.txt 由 stool-shop 精确代理至子站规则，部署前为 404。deploy/configure-robots.py 处理首次配置并备份，已有 robots 必须合并。
+后台、API、预览、错误和健康页 noindex；认证保持。咨询在 HTTP IP 环境通过 getRandomValues 兼容无 randomUUID 的浏览器。
+追加验收 npm run test:seo，查公网与既有站点。指南由源码维护，修改同时更改实际更新时间。详读 docs/SEO-GEO.md；公司资料源于原模板待确认，不要加虚构资质、价格或评价。未操作站长平台，不能把优化说成已收录。

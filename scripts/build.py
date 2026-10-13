@@ -48,7 +48,12 @@ def main():
   s=file.read_text(encoding='utf-8',errors='replace')
   m=re.search(r'window\.location\.href\s*=\s*[\'\"]http://m\.kaishansales\.com([^\'\"]*)',s)
   if m:
-   mobile='/mobile'+(m.group(1) or '/');routes[p]=mobile;inverse.setdefault(mobile,p)
+   mobile='/mobile'+(m.group(1) or '/')
+   page=re.search(r'/index_(\d+)\.html$',p)
+   if page and re.search(r'-0\.html$',mobile):
+    candidate=re.sub(r'-0\.html$',f'-{int(page.group(1))-1}.html',mobile)
+    if (ROOT/'source'/candidate.lstrip('/')).exists():mobile=candidate
+   routes[p]=mobile;inverse.setdefault(mobile,p)
  missing={(i['site'],i['path']) for i in inventory['errors']}
  for item in inventory['pages']+inventory['assets']:
   site,path=item['site'],item['path'];src=ROOT/'source'/site/(path.lstrip('/')+('index.html' if path.endswith('/') else ''))

@@ -63,13 +63,16 @@ class Tree(HTMLParser):
   return s
 
 def generate(output,routes):
- output=pathlib.Path(output);catalog=[];trees={};pathmap={}
+ output=pathlib.Path(output);catalog=[];trees={};pathmap={};aliases={}
  for p in sorted(output.rglob('*.html')):
   rel='/'+p.relative_to(output).as_posix()
   if rel.startswith('/mobile/') or rel=='/404.html':continue
   url=rel[:-10] if rel.endswith('index.html') else rel
   s=p.read_text()
-  if 'window.location.replace(' in s:continue
+  if 'window.location.replace(' in s:
+   m=re.search(r'window\.location\.replace\(\s*([\"\'])([^\"\']+)\1\s*\)',s)
+   if m and m.group(2).startswith('/') and not m.group(2).startswith('//'):aliases[url]=m.group(2)
+   continue
   t=Tree(s);trees[url]=t
   title=next((t.text(n) for n in t.nodes if n.tag=='title'),'')
   description=next((n.attrs.get('content','') for n in t.nodes if n.tag=='meta' and n.attrs.get('name')=='description'),'')
@@ -145,7 +148,7 @@ def generate(output,routes):
   meta['hasBody']='body' in blocks
   directory=output/'cms'/'documents';directory.mkdir(parents=True,exist_ok=True)
   (directory/(meta['id']+'.json')).write_text(json.dumps({'meta':meta,'blocks':blocks},ensure_ascii=False))
- (output/'cms'/'catalog.json').write_text(json.dumps({'documents':catalog,'paths':pathmap},ensure_ascii=False))
+ (output/'cms'/'catalog.json').write_text(json.dumps({'documents':catalog,'paths':pathmap,'aliases':aliases},ensure_ascii=False))
  media=[]
  for p in output.rglob('*'):
   if p.suffix.lower() in ('.png','.jpg','.jpeg','.gif','.webp'):

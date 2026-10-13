@@ -44,6 +44,15 @@ export default {
     if (url.pathname === '/api/inquiries') return submitInquiry(request, env);
     if (url.pathname.startsWith('/api/')) return json({ error: '未找到该接口。' }, 404);
     if (request.method !== 'GET' && request.method !== 'HEAD') return new Response('Method Not Allowed', { status: 405 });
+    if(url.pathname==='/robots.txt')return robots(request,env);
+    if(url.pathname==='/guide/')return guidePage(request,env);
+    if(url.pathname==='/sitemap.xml'||url.pathname==='/llms.txt'){
+      try{const documents=[...await publicDocuments(env),guideMeta];return url.pathname==='/sitemap.xml'?sitemap(request,env,documents):llms(request,env,documents);}catch{return new Response('Discovery service temporarily unavailable',{status:503,headers:{'Retry-After':'60'}});}
+    }
+    let redirectPath;
+    if(url.pathname.endsWith('/index.html'))redirectPath=url.pathname.slice(0,-10);
+    else redirectPath=(await catalog(env)).aliases?.[url.pathname];
+    if(redirectPath){const target=new URL(redirectPath,url);target.search=url.search;return Response.redirect(target.toString(),308);}
     let path;
     try { path = decodeURIComponent(url.pathname); } catch { return new Response('Bad Request', { status: 400 }); }
     if ((path==='/' || path.startsWith('/mobile/') || /^\/(about|product|news|case|service|contact|consultation)\//.test(path)) && (path.endsWith('/') || path.endsWith('.html'))) {
@@ -63,4 +72,5 @@ export default {
     return new Response(fallback.body, { status: 404, headers: { 'Content-Type': 'text/html; charset=utf-8' } });
   }
 };
-import { adminApi, adminIdentity, loginResponse, renderPage, uploadedMedia } from './cms.js';
+import { adminApi, adminIdentity, loginResponse, renderPage, uploadedMedia, publicDocuments, catalog } from './cms.js';
+import {sitemap,robots,llms,guidePage,guideMeta} from './seo.js';

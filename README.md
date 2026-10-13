@@ -4,6 +4,7 @@
 
 - **前台：** http://159.75.67.132/donghan/
 - **手机版：** http://159.75.67.132/donghan/mobile/
+- **选型指南：** http://159.75.67.132/donghan/guide/ 。[SEO/GEO 说明](docs/SEO-GEO.md) · [网站地图](http://159.75.67.132/donghan/sitemap.xml)。
 - **后台：** http://159.75.67.132/donghan/uguest/ 。账号 `admin`，初始密码仅保存在服务器私有文件中。
 - **项目文档：** [Markdown](docs/项目文档.md) · [PDF](docs/项目文档.pdf) · [修改记录](docs/CHANGELOG.md)。
 - **接手与升级：** [部署交接](docs/给接手AI的部署说明.txt) · [部署说明](deploy/README.md)。
@@ -20,6 +21,7 @@ npm run check
 node scripts/server-qa.mjs
 node scripts/mount-qa.mjs
 node scripts/uguest-qa.mjs
+npm run test:seo
 ```
 
 构建需要 Python 3 与 Node 22.13+；运行 Ubuntu 后端使用 Node 24。当前服务配置为 `PUBLIC_URL=http://159.75.67.132`、`BASE_PATH=/donghan`、`ADMIN_PATH=/uguest`。

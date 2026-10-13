@@ -47,7 +47,7 @@
       form.addEventListener('submit', async event => {
         event.preventDefault();
         if (!form.reportValidity() || button.disabled) return;
-        submissionId ||= crypto.randomUUID();
+        submissionId ||= (crypto.randomUUID ? crypto.randomUUID() : Array.from(crypto.getRandomValues(new Uint8Array(16)), (b, i) => (i === 6 ? (b & 15) | 64 : i === 8 ? (b & 63) | 128 : b).toString(16).padStart(2, '0')).join('').replace(/^(.{8})(.{4})(.{4})(.{4})(.{12})$/, '$1-$2-$3-$4-$5'));
         button.disabled = true; const label = button.value; button.value = '提交中…'; status.textContent = '';
         try {
           const response = await fetch(sitePath('/api/inquiries'), { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ id: submissionId, name: name.value, phone: phone.value, message: message.value, source }) });

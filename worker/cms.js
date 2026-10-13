@@ -1,4 +1,5 @@
 import sanitizeHtml from 'sanitize-html';
+import {seoHead, guideLink, guideStyles} from './seo.js';
 const reply=(data,status=200)=>new Response(JSON.stringify(data),{status,headers:{'Content-Type':'application/json; charset=utf-8','Cache-Control':'private, no-store','X-Content-Type-Options':'nosniff'}});
 const escape=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const now=()=>new Date().toISOString();
@@ -161,6 +162,13 @@ export async function uploadedMedia(request,env){
 async function published(env){
  const {results}=await env.DB.prepare("SELECT id,json_extract(published_json,'$.meta') AS meta FROM cms_documents WHERE published_json<>'' LIMIT 2000").all();return new Map(results.map(r=>[r.id,parse(r.meta)]));
 }
+export async function publicDocuments(env){
+ const c=await catalog(env);
+ const {results}=await env.DB.prepare("SELECT d.id,json_extract(d.published_json,'$.meta') AS meta,(SELECT r.created_at FROM cms_revisions r WHERE r.document_id=d.id AND r.revision=d.published_revision LIMIT 1) AS modified FROM cms_documents d WHERE d.published_json<>'' LIMIT 2000").all();
+ const documents=new Map(c.documents.map(meta=>[meta.id,meta]));
+ for(const r of results){const meta=parse(r.meta);if(meta)documents.set(r.id,{...meta,...(r.modified?{modified:r.modified}:{})});}
+ return [...documents.values()].filter(meta=>!meta.hidden&&meta.desktop&&meta.id!=='settings');
+}
 const previewScript=device=>'<script>window.CMS_PREVIEW_DEVICE='+JSON.stringify(device)+';</script><style>[data-cms-block]:hover{outline:2px solid #ffac30;outline-offset:2px;cursor:pointer!important}body:after{display:none!important}</style><script>document.addEventListener("click",function(e){let el=e.target.closest("[data-cms-block]");e.preventDefault();e.stopPropagation();if(el)parent.postMessage({type:"cms-select",block:el.getAttribute("data-cms-block")},new URL(document.baseURI).origin);},true);</script>';
 function cards(meta,device){
  const url=escape(device==='mobile'?meta.mobile:meta.desktop),title=escape(meta.title),cover=escape(meta.cover||'/replica/donghan-logo.svg'),description=escape(meta.description||'');
@@ -197,6 +205,16 @@ export async function renderPage(request,env,path,preview=null){
   rewriter.on(selector,{element:e=>e.prepend(items,{html:true})});
  }
  if(preview)rewriter.on('head',{element:e=>e.prepend('<base href="'+escape(new URL(path,request.url).href)+'">'+previewScript(device),{html:true})});
+ const originalMeta=c.documents.find(m=>m.id===id),seoMeta=doc?.meta||originalMeta;
+ if(!preview&&seoMeta){
+  rewriter.on('title,meta[name="description"],meta[name="keywords"],meta[name="robots"],link[rel="canonical"],link[rel="alternate"][media],meta[property^="og:"],meta[name^="twitter:"],script[type="application/ld+json"]',{element:e=>e.remove()});
+  rewriter.on('head',{element:e=>e.append(seoHead(request,env,seoMeta,originalMeta||c.documents.find(m=>m.id===seoMeta.templateId)||base?.meta||seoMeta,device==='mobile'),{html:true})});
+  if(seoMeta.kind==='home'){
+   rewriter.on('head',{element:e=>e.append('<style>'+guideStyles+'</style>',{html:true})});
+   let inserted=false;
+   rewriter.on('.footer, #footer_main',{element(e){if(!inserted){inserted=true;e.before(guideLink,{html:true});}}});
+  }
+ }
  let response=rewriter.transform(original);
  if(state.has('settings')){
   const r=await row(env,'settings');const values=parse(r.published_json)?.values;
@@ -209,5 +227,6 @@ export async function renderPage(request,env,path,preview=null){
   }
  }
  const headers=new Headers(response.headers);headers.delete('etag');headers.set('Cache-Control','private, no-store');headers.set('X-Content-Type-Options','nosniff');
+ if(preview)headers.set('X-Robots-Tag','noindex, nofollow');
  return new Response(request.method==='HEAD'?null:response.body,{status:response.status,headers});
 }

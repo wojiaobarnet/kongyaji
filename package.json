@@ -6,10 +6,11 @@
   "scripts": {
     "build": "python3 scripts/build.py && vite build",
     "dev": "vite --host 127.0.0.1",
-    "check": "python3 scripts/verify.py && node --check worker/index.js && node --check assets/replica.js && node --check worker/cms.js && node --check admin/admin.js && node --check admin/media.js && node --check server/runtime.mjs",
+    "check": "python3 scripts/verify.py && node --check worker/index.js && node --check assets/replica.js && node --check worker/cms.js && node --check admin/admin.js && node --check admin/media.js && node --check server/runtime.mjs && node --check worker/seo.js",
     "db:generate": "drizzle-kit generate",
     "db:local": "wrangler d1 migrations apply DB --local --config dist/server/wrangler.json --persist-to .wrangler/state",
-    "preview": "node scripts/preview.mjs"
+    "preview": "node scripts/preview.mjs",
+    "test:seo": "node scripts/seo-qa.mjs"
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "1.37.1",

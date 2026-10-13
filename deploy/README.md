@@ -34,3 +34,11 @@ sudo journalctl -u donghan -n 80 --no-pager
 每次升级验证实际前台、手机端、后台登录和预览、图片及留言，并检查原有网站。当前 HTTP，HTTPS 未配置；修改协议时同步 PUBLIC_URL。
 
 每次代码修改同时更新完整项目 Markdown/PDF、部署交接、CHANGELOG 和 GitHub，详见 AGENTS.md。完整参数、目录及恢复说明见 `docs/项目文档.md`。
+
+## SEO 与 GEO 抓取配置
+
+现有 IP 作为规范源，PUBLIC_URL 和 BASE_PATH 决定 canonical、社交预览、网站地图与导航链接。`/donghan/guide/` 是响应式选型指南，两端首页有入口。`/donghan/sitemap.xml` 实时生成，只包含公开规范页面；修改日期来自实际发布版本。
+
+本次主机根 `/robots.txt` 从原 404 状态增加精确代理到 `/donghan/robots.txt`，其他网站路由保留。首次执行 `sudo python3 deploy/configure-robots.py --config /etc/nginx/sites-enabled/stool-shop`；脚本备份并检查 nginx，失败恢复，遇到现存 robots 要求人工合并。普通升级保留该规则。
+
+验收 `npm run test:seo`，部署后检查公网 robots、地图、指南、canonical 和后台 noindex。完整策略见 `docs/SEO-GEO.md`。公司与联系资料待所有者核实；未申请收录或承诺排名。

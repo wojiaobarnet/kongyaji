@@ -33,7 +33,7 @@ function prepared(sql,params=[]){
  return {bind:(...values)=>prepared(sql,values),first:async()=>execute('first'),all:async()=>execute('all'),run:async()=>execute('run'),execute};
 }
 const types={'.html':'text/html; charset=utf-8','.json':'application/json; charset=utf-8','.js':'application/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.svg':'image/svg+xml','.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg','.gif':'image/gif','.webp':'image/webp','.ico':'image/x-icon','.woff':'font/woff','.woff2':'font/woff2','.pdf':'application/pdf'};
-const env={CMS_ADMIN_EMAIL:'admin@donghan.local',CMS_AUTH_MODE:'password',DB:{prepare:prepared,batch:async statements=>{db.exec('BEGIN IMMEDIATE');try{const result=statements.map(s=>s.execute('run'));db.exec('COMMIT');return result;}catch(e){db.exec('ROLLBACK');throw e;}}},
+const env={PUBLIC_URL,BASE_PATH,ADMIN_PATH,CMS_ADMIN_EMAIL:'admin@donghan.local',CMS_AUTH_MODE:'password',DB:{prepare:prepared,batch:async statements=>{db.exec('BEGIN IMMEDIATE');try{const result=statements.map(s=>s.execute('run'));db.exec('COMMIT');return result;}catch(e){db.exec('ROLLBACK');throw e;}}},
  ASSETS:{async fetch(request){let pathname;try{pathname=decodeURIComponent(new URL(request.url).pathname);}catch{return new Response('Bad Request',{status:400});}if(pathname.endsWith('/'))pathname+='index.html';const filename=path.resolve(ASSET_ROOT,'.'+pathname);if(!filename.startsWith(ASSET_ROOT+path.sep)||pathname.includes('\0'))return new Response('Not Found',{status:404});try{const data=await readFile(filename);return new Response(request.method==='HEAD'?null:data,{headers:{'Content-Type':types[path.extname(filename)]||'application/octet-stream','Cache-Control':'public,max-age=3600','X-Content-Type-Options':'nosniff'}});}catch{return new Response('Not Found',{status:404});}}},
  BUCKET:{async put(key,bytes){if(!/^[\w.-]+$/.test(key))throw new Error('Invalid object key');const file=path.join(DATA_ROOT,'uploads',key),tmp=file+'.tmp-'+randomBytes(6).toString('hex');await writeFile(tmp,bytes,{mode:0o600});await rename(tmp,file);},async get(key){if(!/^[\w.-]+$/.test(key))return null;try{const data=await readFile(path.join(DATA_ROOT,'uploads',key));return {body:data,writeHttpMetadata:h=>h.set('Content-Type',types[path.extname(key)]||'application/octet-stream')};}catch{return null;}},async delete(key){if(/^[\w.-]+$/.test(key))await unlink(path.join(DATA_ROOT,'uploads',key)).catch(()=>{});}}
 };
@@ -78,17 +78,19 @@ const server=http.createServer(async(req,res)=>{
   const url=new URL(req.url,origin);if(url.origin!==new URL(origin).origin){res.writeHead(400);res.end();return;}
   if(BASE_PATH){
    if(url.pathname===BASE_PATH){res.writeHead(308,{Location:BASE_PATH+'/'+url.search});res.end();return;}
-   if(!url.pathname.startsWith(BASE_PATH+'/')){res.writeHead(404);res.end('Not Found');return;}
+   if(!url.pathname.startsWith(BASE_PATH+'/')){res.writeHead(404,{'X-Robots-Tag':'noindex, nofollow'});res.end('Not Found');return;}
    url.pathname=url.pathname.slice(BASE_PATH.length);
   }
   if(ADMIN_PATH!=='/admin'){
-   if(url.pathname==='/admin'||url.pathname.startsWith('/admin/')){res.writeHead(404);res.end('Not Found');return;}
+   if(url.pathname==='/admin'||url.pathname.startsWith('/admin/')){res.writeHead(404,{'X-Robots-Tag':'noindex, nofollow'});res.end('Not Found');return;}
    if(url.pathname===ADMIN_PATH||url.pathname.startsWith(ADMIN_PATH+'/'))url.pathname='/admin'+url.pathname.slice(ADMIN_PATH.length);
   }
   const chunks=[];let length=0;for await(const chunk of req){length+=chunk.length;if(length>9000000){res.writeHead(413);res.end('Payload Too Large');return;}chunks.push(chunk);}
   const headers=new Headers();for(const [key,value]of Object.entries(req.headers))if(value!==undefined)headers.set(key,Array.isArray(value)?value.join(','):value);
   const request=new Request(url,{method:req.method,headers,body:['GET','HEAD'].includes(req.method)?undefined:Buffer.concat(chunks)});
-  const response=await mountResponse(await handle(request,req.headers['x-real-ip']||req.socket.remoteAddress),BASE_PATH,new URL(origin).origin,ADMIN_PATH);res.writeHead(response.status,Object.fromEntries(response.headers));if(req.method==='HEAD'){res.end();return;}if(!response.body){res.end();return;}for await(const chunk of response.body)if(!res.write(chunk))await new Promise(resolve=>res.once('drain',resolve));res.end();
+  let result=await handle(request,req.headers['x-real-ip']||req.socket.remoteAddress);
+  if(result.status>=400||/^\/(?:admin|api|cms)(?:\/|$)/.test(url.pathname)||url.pathname==='/healthz'){const h=new Headers(result.headers);h.set('X-Robots-Tag','noindex, nofollow');result=new Response(result.body,{status:result.status,headers:h});}
+  const response=await mountResponse(result,BASE_PATH,new URL(origin).origin,ADMIN_PATH);res.writeHead(response.status,Object.fromEntries(response.headers));if(req.method==='HEAD'){res.end();return;}if(!response.body){res.end();return;}for await(const chunk of response.body)if(!res.write(chunk))await new Promise(resolve=>res.once('drain',resolve));res.end();
  }catch(error){console.error('Request failed:',error.message);if(!res.headersSent)res.writeHead(500,{'Content-Type':'text/plain; charset=utf-8'});res.end('服务暂不可用，请稍后重试。');}
 });
 server.requestTimeout=120000;server.headersTimeout=15000;
