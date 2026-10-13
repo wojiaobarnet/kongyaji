@@ -14,8 +14,10 @@ export default defineConfig({
       name: 'kaishan-sales-replica',
       main: './worker/index.js',
       compatibility_date: '2026-05-15',
+      compatibility_flags: ['nodejs_compat'],
       assets: { binding: 'ASSETS', run_worker_first: true, html_handling: 'none', not_found_handling: 'none' },
-      d1_databases: [{ binding: 'DB', database_name: 'kaishan-inquiries', database_id: '00000000-0000-4000-8000-000000000000', migrations_dir: '../../drizzle' }]
+      d1_databases: [{ binding: 'DB', database_name: 'kaishan-inquiries', database_id: '00000000-0000-4000-8000-000000000000', migrations_dir: '../../drizzle' }],
+      r2_buckets: [{binding:'BUCKET',bucket_name:'kaishan-media'}]
     }
   })],
   server: { host: '127.0.0.1' }

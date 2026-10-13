@@ -33,11 +33,23 @@ export async function submitInquiry(request, env) {
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+    try { url.pathname = decodeURIComponent(url.pathname); } catch { return new Response('Bad Request', {status:400}); }
+    request = new Request(url, request);
+    if (url.pathname.startsWith('/api/admin/')) return adminApi(request, env);
+    if (url.pathname === '/admin' || url.pathname.startsWith('/admin/')) {
+      if (!adminIdentity(request, env)) return loginResponse();
+    }
+    if (url.pathname.startsWith('/cms/')) return new Response('Not Found', {status:404});
+    if (url.pathname.startsWith('/uploads/')) return uploadedMedia(request, env);
     if (url.pathname === '/api/inquiries') return submitInquiry(request, env);
     if (url.pathname.startsWith('/api/')) return json({ error: '未找到该接口。' }, 404);
     if (request.method !== 'GET' && request.method !== 'HEAD') return new Response('Method Not Allowed', { status: 405 });
     let path;
     try { path = decodeURIComponent(url.pathname); } catch { return new Response('Bad Request', { status: 400 }); }
+    if ((path==='/' || path.startsWith('/mobile/') || /^\/(about|product|news|case|service|contact|consultation)\//.test(path)) && (path.endsWith('/') || path.endsWith('.html'))) {
+      const response = await renderPage(request, env, path);
+      return response;
+    }
     if (!path.split('/').pop().includes('.')) {
       if (!path.endsWith('/')) {
         url.pathname += '/';
@@ -51,3 +63,4 @@ export default {
     return new Response(fallback.body, { status: 404, headers: { 'Content-Type': 'text/html; charset=utf-8' } });
   }
 };
+import { adminApi, adminIdentity, loginResponse, renderPage, uploadedMedia } from './cms.js';

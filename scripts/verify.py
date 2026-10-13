@@ -25,6 +25,7 @@ for p in pages:
  parser.refs.extend(re.findall(r'window\.location\.replace\([\'\"]([^\'\"]+)',s))
  for ref in parser.refs:
   if ref.startswith(('#','javascript:','mailto:','tel:','weixin:','data:')):continue
+  if urllib.parse.urlsplit(ref).path.startswith(('/api/admin/','/signin-with-chatgpt','/signout-with-chatgpt')):continue
   if urllib.parse.urlsplit(ref).hostname in ('kaishansales.com','www.kaishansales.com','m.kaishansales.com'):errors.append((base,'original domain dependency: '+ref))
   t=target(ref,base)
   if t and not t.exists():errors.append((base,ref))

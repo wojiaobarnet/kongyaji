@@ -102,11 +102,15 @@ def main():
    s=re.sub(r'var _hmt.*?\}\)\(\);','',s,count=1,flags=re.S)
    s=re.sub(r'function share\(\)\s*\{.*?(?=function AddFavorite)', 'function share() {}\n\n',s,flags=re.S)
   elif path=='/public/js/common.js' and site=='mobile':s='/* Original analytics removed; interactions stay in app.js. */\n'
+  elif path=='/public/js/app.js' and site=='mobile':s=s.replace('new Clipboard(btn)', 'new Clipboard(btn || "#btn")')
   elif path=='/public/js/map.js':s='/* Map is embedded in the contact page. */\n'
   out.write_text(s,encoding='utf-8')
  (OUTPUT/'replica').mkdir()
  for p in (ROOT/'assets').iterdir():shutil.copyfile(p,OUTPUT/'replica'/p.name)
  (OUTPUT/'replica/transparent.png').write_bytes(base64.b64decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVR42mNgAAIAAAUAAarVyFEAAAAASUVORK5CYII='))
+ from cms_build import generate
+ generate(OUTPUT,routes)
+ if (ROOT/'admin').exists():shutil.copytree(ROOT/'admin',OUTPUT/'admin',dirs_exist_ok=True)
  shutil.copyfile(OUTPUT/'index.html',ROOT/'index.html')
  (OUTPUT/'index.html').unlink() # Vite emits the root index, all remaining pages are public assets.
  (OUTPUT/'404.html').write_text('<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>页面不存在</title><body style="font:16px Microsoft Yahei,sans-serif;text-align:center;padding:80px 20px;color:#555"><h1>页面不存在</h1><p>请返回首页浏览产品、新闻及服务。</p><a href="/" style="color:#087bbf">返回首页</a></body></html>')

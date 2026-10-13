@@ -1,0 +1,18 @@
+import assert from 'node:assert/strict';
+import { mkdir } from 'node:fs/promises';
+const {chromium}=await import(process.env.PLAYWRIGHT_MODULE||'playwright');
+const browser=await chromium.launch({executablePath:process.env.CHROMIUM_PATH||'/usr/bin/chromium',headless:true,args:['--no-sandbox']});
+await mkdir('research/screenshots',{recursive:true});
+const context=await browser.newContext({viewport:{width:1440,height:1000}});const page=await context.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
+await page.goto('http://127.0.0.1:4173/admin/');await page.getByText('网站内容，一处管理',{exact:true}).waitFor();await page.screenshot({path:'research/screenshots/admin-overview.png',fullPage:true});
+await page.locator('#navigation button[data-view="news"]').click();await page.locator('#content-search').fill('永磁变频螺杆空压机适合');await page.locator('#content-rows [data-edit]').first().click();await page.locator('#doc-title').waitFor();
+assert.ok(await page.locator('#preview-frame').isVisible());
+await page.locator('#doc-description').fill('浏览器界面草稿验收');await page.getByRole('button',{name:'保存草稿',exact:true}).click();await page.getByText('草稿已保存',{exact:true}).waitFor();
+await page.locator('[data-device="mobile"]').click();await page.waitForTimeout(300);await page.screenshot({path:'research/screenshots/admin-editor.png',fullPage:true});
+await page.locator('#history-button').click();await page.locator('#restore-original').click();await page.getByText('原始内容已恢复为草稿',{exact:true}).waitFor();
+await page.locator('#publish-content').click();await page.locator('#confirm-accept').click();await page.getByText('已发布到前台',{exact:true}).waitFor();
+await page.locator('#navigation button[data-view="inquiries"]').click();await page.locator('#inquiry-rows').waitFor();assert.ok(await page.getByRole('link',{name:'导出 CSV ↓'}).isVisible());
+await page.locator('#navigation button[data-view="media"]').click();await page.locator('#media-type').selectOption('uploaded');await page.locator('.media-card').first().waitFor();
+await page.locator('#navigation button[data-view="settings"]').click();await page.locator('[data-setting="phone"]').waitFor();
+const mobile=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true});const mp=await mobile.newPage();mp.on('pageerror',e=>errors.push('mobile '+e.message));await mp.goto('http://127.0.0.1:4173/admin/');await mp.getByText('网站内容，一处管理',{exact:true}).waitFor();await mp.locator('#menu-toggle').click();assert.ok((await mp.locator('#sidebar').getAttribute('class')).includes('open'));await mp.locator('#navigation button[data-view="news"]').click();await mp.locator('#content-search').waitFor();assert.ok(!(await mp.locator('#sidebar').getAttribute('class')).includes('open'));await mp.screenshot({path:'research/screenshots/admin-mobile.png',fullPage:true});
+await browser.close();assert.deepEqual(errors,[]);console.log(JSON.stringify({desktopAdmin:'passed',visualEditor:'passed',draft:'saved',originalRestore:'published',media:'passed',inquiries:'passed',mobileAdmin:'passed',errors}));

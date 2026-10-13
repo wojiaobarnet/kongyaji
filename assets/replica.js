@@ -1,12 +1,12 @@
 (() => {
   'use strict';
-  const source = location.pathname.startsWith('/mobile') ? 'mobile' : 'desktop';
+  const source = window.CMS_PREVIEW_DEVICE || (location.pathname.startsWith('/mobile') ? 'mobile' : 'desktop');
   const parameters = new URLSearchParams(location.search);
   if (parameters.get('view') === 'desktop') sessionStorage.setItem('kaishan-view', 'desktop');
   if (parameters.get('view') === 'mobile') sessionStorage.setItem('kaishan-view', 'mobile');
   const mapping = window.KAISHAN_ROUTE || {};
   const smallScreen = Math.min(innerWidth, screen.width) <= 767;
-  if (source === 'desktop' && sessionStorage.getItem('kaishan-view') !== 'desktop' && smallScreen && mapping.mobile) {
+  if (!window.CMS_PREVIEW_DEVICE && source === 'desktop' && sessionStorage.getItem('kaishan-view') !== 'desktop' && smallScreen && mapping.mobile) {
     location.replace(mapping.mobile + location.hash);
     return;
   }

@@ -6,6 +6,8 @@ research/
 .wrangler/
 .sites-runtime/
 .env*
+.dev.vars*
+!.dev.vars.example
 *.tar.gz
 *.zip
 __pycache__/

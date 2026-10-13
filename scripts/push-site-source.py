@@ -17,12 +17,15 @@ def git(args,auth=False):
  return r.stdout.strip()
 remote=credential['remote_url'];branch=credential['branch']
 refs=git(['ls-remote',remote,'refs/heads/'+branch],auth=True)
-if refs:raise RuntimeError('Source repository already has a branch; reconcile before pushing.')
 # The original GitHub origin and current checkout branch are preserved.
 if 'sites' in git(['remote']).splitlines():git(['remote','set-url','sites',remote])
 else:git(['remote','add','sites',remote])
+if refs:
+ git(['fetch','sites','refs/heads/'+branch],auth=True)
+ remote_sha=refs.split()[0]
+ git(['merge-base','--is-ancestor',remote_sha,'HEAD'])
 git(['add','.'])
-git(['-c','user.name=Codex','-c','user.email=codex@openai.com','commit','-m','Recreate Kaishan desktop and mobile website with independent inquiry storage'])
+git(['-c','user.name=Codex','-c','user.email=codex@openai.com','commit','-m','Add owner-protected CMS with live content publishing, media uploads, and inquiry management'])
 sha=git(['rev-parse','HEAD'])
 git(['push','sites','HEAD:refs/heads/'+branch],auth=True)
 verified=git(['ls-remote',remote,'refs/heads/'+branch],auth=True).split()[0]
