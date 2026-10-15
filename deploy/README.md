@@ -1,44 +1,62 @@
-# 東悍 Ubuntu 部署与升级
+# 東悍 Linux / 宝塔部署与升级
 
-当前已部署：前台 `http://159.75.67.132/donghan/`，后台 `/donghan/uguest/`，健康检查 `/donghan/healthz`。Node 24.21.0，回环端口 8010，服务 `donghan.service`。
+当前主站为 `http://43.128.69.6/donghan/`，后台 `/donghan/uguest/`。2026-10-15 已从旧服务器迁入腾讯云宝塔 Linux 面板 11.8，实际系统 OpenCloudOS 9.6 x86_64；宝塔 Nginx 1.30.6，Node 24.21.0，SQLite 与本地文件存储。网站不依赖 PHP 或数据库服务插件。
+
+## 当前配置
+
+- 服务 `donghan.service`，用户 `donghan:donghan`，后端只监听 `127.0.0.1:8010`。
+- `PUBLIC_URL=http://43.128.69.6`、`BASE_PATH=/donghan`、`ADMIN_PATH=/uguest`。
+- 程序 `/var/www/donghan/current`，持久数据 `/var/lib/donghan`。
+- 宝塔网站列表登记 `43.128.69.6`（ID 1）；占位根目录 `/www/wwwroot/donghan`。实际程序由 systemd 管理，不能把占位根目录当成完整源码。
+- 代理 `/www/server/panel/vhost/nginx/43.128.69.6.conf`；二进制 `/www/server/nginx/sbin/nginx`；访问日志 `/www/wwwlogs/43.128.69.6.log`。
+- HTTP 根路径跳转 `/donghan/`，根 robots 精确代理至子站。新机不开放 8088。当前尚未配置 HTTPS。
+
+旧服务器 `159.75.67.132` 保留原站与原有其他网站，未设置跨服务器跳转。两台数据库不自动同步，后续编辑请使用新后台。
+
+## 宝塔首次迁移
+
+先检查已有站点、端口和文件，不能覆盖别人的 vhost。安装宝塔官方 Nginx；本次使用官方 `https://download.bt.cn/install/1/nginx.sh` 的 `install 1.30`，实际安装到 1.30.6。版本以安装后的二进制核验为准，不要重复安装或无条件覆盖已有 Nginx。
+
+Node 24.21.0 Linux x64 包与官方校验文件匹配，SHA256 为 `fd8e59d5a511510f6a298afb548f18c7d2b1be404d8b4a27d94fbe49f56cb2d6`；路径 `/opt/donghan/node-24.21.0/bin/node`。
+
+从 GitHub main 构建：`npm ci`、`npm run build`、`npm run check`。迁移包需要 `dist/`、`worker/`、`server/`、`drizzle/`、生产 `node_modules/`、`package.json`、`deploy/` 和文档。若要在目标机器运行隔离验收，还需 `scripts/`、`assets/replica.js` 与 `source/desktop/public/images/logo.png` 测试资源。
+
+旧站运行中 SQLite 用 `server/backup.mjs` 创建一致性备份。管理员配置、数据库、initial-login.txt（若仍存在）及 uploads 只通过私有 SSH 传输，保留权限，不能进入 GitHub、公开包或日志。本次旧站快照 `/var/www/donghan/backups/migrate-20261015-baota/`，新机私有暂存 `/var/lib/donghan-migration-20261015`。
+
+先通过已安装面板的本地 AddSite API 登记站点，再安装程序：
+
+```bash
+cd /www/server/panel
+/www/server/panel/pyenv/bin/python3 /path/to/package/deploy/register-baota-site.py --host 43.128.69.6
+cd /path/to/package
+bash deploy/install-baota.sh /private/migration-snapshot 43.128.69.6 8010
+```
+
+注册脚本不修改面板登录信息，不启用 FTP、MySQL 或 Git 自动部署。安装脚本保存该站初始 nginx 配置，保留管理员配置，创建专用用户与 systemd 服务，健康后再重载代理；失败恢复原配置并保留恢复资料。不能在已有 Donghan 服务上重复运行首次安装。
 
 ## 已有服务器升级
 
-从最新 main 源码在独立目录构建并检查，提供 `dist/`、`worker/`、`server/`、`drizzle/`、生产依赖 `node_modules/`、`package.json` 和 `deploy/`，执行：
+在独立目录构建、验收、打包后执行：
 
 ```bash
 sudo bash deploy/update.sh
 ```
 
-脚本要求已有安装；备份 SQLite 和服务配置，创建新发布，切换 current、重启并检查健康状态，失败恢复旧发布。它保留 PUBLIC_URL、BASE_PATH、ADMIN_PATH、nginx 路由和账号。不可从运行中的 current 目录升级。
+脚本备份 SQLite 和服务配置，创建新 release、切换 current、重启检查，失败切回旧版本。它保留 PUBLIC_URL、BASE_PATH、ADMIN_PATH、nginx、账号和持久数据。不得在 current 目录直接执行，不得删除 `/var/lib/donghan`。数据库只追加兼容迁移。
 
-当前环境：`PUBLIC_URL=http://159.75.67.132`，`BASE_PATH=/donghan`，`ADMIN_PATH=/uguest`。新后台资源和跳转都映射到 uguest；旧 `/donghan/admin/` 为 404，API 仍在 `/donghan/api/admin/` 且必须登录。
+`install.sh` 与 `configure-robots.py` 是旧 Ubuntu 独立 Host / 旧主站配置的辅助脚本，不适用于当前宝塔首次迁移。不要把 `/etc/nginx/sites-enabled/stool-shop` 复制到宝塔。
 
-## 首次独立 Host 安装
-
-`install.sh <域名> <回环端口>` 为全新独立 Host 安装。准备 nginx、curl、Python 3、www-data 用户、Node 24 和完整构建包后运行。默认网站位于根路径，后台为 /admin/。不要用这个默认模式覆盖现有 IP 的 /donghan/ 部署。
-
-该脚本保留已有默认站点，新增虚拟主机使用 zz-donghan 启用名；首次安装的软链接回滚和重载后等待已修正。数据库迁移不自动撤销，迁移只能兼容追加。
-
-## 数据、备份与验证
-
-数据 `/var/lib/donghan`，数据库 content.sqlite，图片 uploads/，管理员配置 admin.json。初始账号 admin，随机密码在 initial-login.txt（600 权限），不提交到 GitHub。密码修改后初始文件删除，旧会话失效。
+## 验证与维护
 
 ```bash
 sudo systemctl status donghan --no-pager
-sudo nginx -t
+sudo systemctl is-enabled donghan
+sudo /www/server/nginx/sbin/nginx -t
 curl -fsS http://127.0.0.1:8010/donghan/healthz
 sudo journalctl -u donghan -n 80 --no-pager
+cat /var/www/donghan/current/REVISION
 ```
 
-每次升级验证实际前台、手机端、后台登录和预览、图片及留言，并检查原有网站。当前 HTTP，HTTPS 未配置；修改协议时同步 PUBLIC_URL。
+验收前台、手机版、后台、预览、图片与留言；业务写入测试只用临时 DATA_ROOT。`npm run test:seo` 验证规范网址、JSON-LD、动态地图、草稿隔离和 noindex；`node scripts/uguest-qa.mjs` 验证认证、发布、图片和持久化。生产验证原密码登录、数据完整性、根 robots、187 个地图页面及新 IP canonical。
 
-每次代码修改同时更新完整项目 Markdown/PDF、部署交接、CHANGELOG 和 GitHub，详见 AGENTS.md。完整参数、目录及恢复说明见 `docs/项目文档.md`。
-
-## SEO 与 GEO 抓取配置
-
-现有 IP 作为规范源，PUBLIC_URL 和 BASE_PATH 决定 canonical、社交预览、网站地图与导航链接。`/donghan/guide/` 是响应式选型指南，两端首页有入口。`/donghan/sitemap.xml` 实时生成，只包含公开规范页面；修改日期来自实际发布版本。
-
-本次主机根 `/robots.txt` 从原 404 状态增加精确代理到 `/donghan/robots.txt`，其他网站路由保留。首次执行 `sudo python3 deploy/configure-robots.py --config /etc/nginx/sites-enabled/stool-shop`；脚本备份并检查 nginx，失败恢复，遇到现存 robots 要求人工合并。普通升级保留该规则。
-
-验收 `npm run test:seo`，部署后检查公网 robots、地图、指南、canonical 和后台 noindex。完整策略见 `docs/SEO-GEO.md`。公司与联系资料待所有者核实；未申请收录或承诺排名。
+每次修改同步源码、完整项目 Markdown/PDF、部署交接、CHANGELOG 与 GitHub，并将同一提交号记录到服务器 REVISION。详细记录见 `docs/宝塔迁移说明.md`，内容策略见 `docs/SEO-GEO.md`。

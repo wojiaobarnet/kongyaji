@@ -7,7 +7,7 @@ from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import ParagraphStyle
-from reportlab.platypus import SimpleDocTemplate,Paragraph,Spacer,Table,TableStyle
+from reportlab.platypus import SimpleDocTemplate,Paragraph,Spacer,Table,TableStyle,KeepTogether
 
 ROOT=Path(__file__).resolve().parents[1]
 SOURCE=ROOT/'docs/项目文档.md'
@@ -47,7 +47,7 @@ while i<len(lines):
   block=[]
   while i<len(lines) and not lines[i].startswith('```'):block.append(lines[i]);i+=1
   i+=1
-  story.append(Paragraph('<br/>'.join(html.escape(s).replace('  ','&#160;&#160;') for s in block),code));continue
+  story.append(KeepTogether([Paragraph('<br/>'.join(html.escape(s).replace('  ','&#160;&#160;') for s in block),code)]));continue
  if line.startswith('|'):
   rows=[line]
   while i<len(lines) and lines[i].startswith('|'):rows.append(lines[i]);i+=1

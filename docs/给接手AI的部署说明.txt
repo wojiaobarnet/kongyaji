@@ -1,37 +1,33 @@
-東悍 donghan 网站已部署。不要按旧交付状态重新安装或覆盖现有站点。
+東悍 donghan 当前主站已于 2026-10-15 部署至 43.128.69.6 宝塔 Linux 面板 11.8 腾讯云专享版。
 
-当前公网入口：
-前台 http://159.75.67.132/donghan/
-手机版 http://159.75.67.132/donghan/mobile/
-后台 http://159.75.67.132/donghan/uguest/
+前台 http://43.128.69.6/donghan/
+手机版 http://43.128.69.6/donghan/mobile/
+后台 http://43.128.69.6/donghan/uguest/
 登录 /donghan/uguest/login；旧 /donghan/admin/ 返回 404。
-旧 8088 地址通过 HTTP 308 跳转到对应新路径。当前没有 HTTPS。
+IP 根路径跳转 /donghan/。新机不开放 8088，尚无 HTTPS。
 
-服务器：ubuntu@159.75.67.132:22，Ubuntu 24.04 x86_64，nginx 1.24.0，ubuntu 可免密 sudo。使用所有者私下提供的 waxiang1.pem；私钥和密码不在 GitHub 中。
-运行时 /opt/donghan/node-24.21.0/bin/node；服务 donghan.service，以 www-data 运行，监听 127.0.0.1:8010。
-环境：PUBLIC_URL=http://159.75.67.132，BASE_PATH=/donghan，ADMIN_PATH=/uguest。
-网站 /var/www/donghan/current；持久数据 /var/lib/donghan。不要删除数据目录来升级。
-账号 admin；随机初始密码仅保存在 /var/lib/donghan/initial-login.txt。管理员修改密码会删除该文件并使旧会话失效。
+实际系统 OpenCloudOS 9.6 x86_64；SSH root@43.128.69.6:22，私钥由所有者私下提供，不进 GitHub。
+宝塔官方 Nginx 1.30.6 已安装；站点通过面板本地 AddSite API 登记，网站列表名称 43.128.69.6，ID 1。
+/www/wwwroot/donghan 只是占位根目录；真正程序 /var/www/donghan/current，以 donghan:donghan 用户运行 donghan.service。
+Node /opt/donghan/node-24.21.0/bin/node；只监听 127.0.0.1:8010。
+环境 PUBLIC_URL=http://43.128.69.6，BASE_PATH=/donghan，ADMIN_PATH=/uguest。
+宝塔代理 /www/server/panel/vhost/nginx/43.128.69.6.conf；nginx 二进制 /www/server/nginx/sbin/nginx。
+访问日志 /www/wwwlogs/43.128.69.6.log。不要使用旧服务器的 /etc/nginx 路径。
 
-原有首页、8000/8001 服务及 /cx/、/taocanlinqu/、/kuangdai/、/roi-v2/、/content-plan/、/dy/ 已验证继续工作。
-/etc/nginx/sites-enabled/stool-shop 中新增 /donghan/ 路由，proxy_pass 不附加尾斜杠，交给 Node 处理前缀。
-sites-enabled/zz-donghan 指向 sites-available/donghan，负责 8088 兼容跳转。
+持久数据 /var/lib/donghan，包括 content.sqlite、uploads 和 admin.json。管理员配置从旧机原样迁入，账号 admin，密码不变。原始模板和 308 张素材在 dist/client，迁移时编辑、媒体上传、历史与留言表均为空，不能据此假定未来仍为空。
+迁移快照旧机 /var/www/donghan/backups/migrate-20261015-baota/；新机私有暂存 /var/lib/donghan-migration-20261015，均含私密数据，不公开。
+首次部署 20261015T090006-baota，其 backups 目录保留初始 nginx 配置。最终交接发布 20261015T090649-baota-final，以 current 指向为准。
 
-先读取 AGENTS.md、docs/项目文档.md、deploy/README.md、docs/CHANGELOG.md，再读取当前服务器和 GitHub main 状态。
-最新源码使用 main 分支。deliverables/ 中三个 ZIP 是初始交付快照，不能当作当前发布直接覆盖服务器。
-已有服务器升级使用独立构建包中的 deploy/update.sh，保留既有 PUBLIC_URL、BASE_PATH、ADMIN_PATH、nginx 和管理员配置。
-根路径 install.sh 是全新独立 Host 安装方式，不是当前服务器升级命令。
+旧 Ubuntu 服务器 159.75.67.132 继续运行，原有首页和其它站点未改变，未设置跨服务器跳转。两台数据不自动同步，后续编辑以新后台为准。旧版 /etc/nginx/sites-enabled/stool-shop 和 8088 只适用于旧机。
 
-server/mount.mjs 与 assets/site-path.js 负责公网前缀和后台别名；后台及 API 保持认证；模板和数据库内路径维持规范格式。
-后台预览使用 srcdoc，以支持应用内浏览器；脚本版本参数避免旧缓存。
+先读 AGENTS.md、docs/项目文档.md、deploy/README.md、docs/宝塔迁移说明.md 和 CHANGELOG，再核对服务器与 GitHub main。
+已有网站升级用独立构建包 deploy/update.sh，保留既有服务环境、nginx、数据和账号；不要从 current 直接升级。
+首次宝塔迁移才用 deploy/register-baota-site.py（面板自带 Python）和 install-baota.sh。旧 install.sh 默认根路径 /admin，不可覆盖现在配置。
+GitHub main 是最新完整源码，deliverables ZIP 是历史初始快照，不能覆盖当前服务。
 
-构建 npm ci、npm run build、npm run check；Node 24 下运行 scripts/server-qa.mjs、mount-qa.mjs、uguest-qa.mjs。
-验收覆盖认证、防伪、草稿隔离、两端发布、图片、留言、重启持久化和密码轮换；生产只做必要验证，不留测试内容。
+SEO/GEO 仍使用 worker/seo.js 和已发布内容；canonical、分享和地图由 PUBLIC_URL 自动生成，新 IP 已逐页核对 187 页。根 robots 已配置，指南仍保留真实内容更新时间，不能因迁移给所有页面伪造 lastmod。
+模板/数据库里的规范路径不带 /donghan，server/mount.mjs 和 assets/site-path.js 处理前缀及后台别名。预览使用 srcdoc。
+验收 npm run check、npm run test:seo、scripts/uguest-qa.mjs；必要时复查 server-qa 与 mount-qa。目标隔离验收需带测试资源，不能向生产插入测试留言或文章。
 
-每次修改必须更新完整 Markdown/PDF、README、部署交接和 CHANGELOG，代码和文档一起同步到 wojiaobarnet/kongyaji。核对远端提交后才报告已同步，发布版本记录在服务器 current/REVISION。
-不得发布 SSH 私钥、生产密码、会话密钥、数据库、上传文件或浏览器登录状态。
-
-SEO/GEO：继续用现有 IP。worker/seo.js 生成标题摘要、canonical、社交元数据、WebSite/WebPage/BreadcrumbList、地图、robots、可选 llms 索引与选型指南。worker/cms.js 只取公开的已发布元数据。lastmod 来自已发布版本时间，不能用草稿更新时间。电脑与手机关联，新闻第二页映射已修复。
-新增 /donghan/guide/、/donghan/sitemap.xml、/donghan/robots.txt 和 /donghan/llms.txt。根 /robots.txt 由 stool-shop 精确代理至子站规则，部署前为 404。deploy/configure-robots.py 处理首次配置并备份，已有 robots 必须合并。
-后台、API、预览、错误和健康页 noindex；认证保持。咨询在 HTTP IP 环境通过 getRandomValues 兼容无 randomUUID 的浏览器。
-追加验收 npm run test:seo，查公网与既有站点。指南由源码维护，修改同时更改实际更新时间。详读 docs/SEO-GEO.md；公司资料源于原模板待确认，不要加虚构资质、价格或评价。未操作站长平台，不能把优化说成已收录。
+每次修改同步代码、Markdown/PDF、README、交接和 CHANGELOG 到 wojiaobarnet/kongyaji，并核对远端提交和服务器 REVISION。
+不得发布 SSH 私钥、密码、会话密钥、数据库、用户上传、访问日志或浏览器登录状态。实际公司资料、联系方式、资质和历史案例仍待所有者核实。

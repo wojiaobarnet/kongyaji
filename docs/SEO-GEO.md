@@ -1,6 +1,6 @@
 # 東悍网站 SEO 与 GEO 维护说明
 
-当前规范地址为 `http://159.75.67.132/donghan/`，继续使用现有 IP，不需要购买域名。GEO 在本项目中指生成式搜索优化（Generative Engine Optimization）。技术优化只创造可发现和理解的条件，不代表平台已经抓取、收录、排名或引用。
+当前规范地址为 `http://43.128.69.6/donghan/`，继续使用现有 IP，不需要购买域名。GEO 在本项目中指生成式搜索优化（Generative Engine Optimization）。技术优化只创造可发现和理解的条件，不代表平台已经抓取、收录、排名或引用。
 
 ## 本次实现
 
@@ -21,13 +21,13 @@
 
 | 资源 | 地址 |
 | --- | --- |
-| 网站地图 | http://159.75.67.132/donghan/sitemap.xml |
-| 主机抓取规则 | http://159.75.67.132/robots.txt |
-| 规则代理源 | http://159.75.67.132/donghan/robots.txt |
-| 选型指南 | http://159.75.67.132/donghan/guide/ |
-| 可选机器导航 | http://159.75.67.132/donghan/llms.txt |
+| 网站地图 | http://43.128.69.6/donghan/sitemap.xml |
+| 主机抓取规则 | http://43.128.69.6/robots.txt |
+| 规则代理源 | http://43.128.69.6/donghan/robots.txt |
+| 选型指南 | http://43.128.69.6/donghan/guide/ |
+| 可选机器导航 | http://43.128.69.6/donghan/llms.txt |
 
-主机根路径还承载其他站点。当前部署前 `/robots.txt` 为 404，才增加精确路由。如果将来其他站点有规则或网站地图，必须合并并保留其要求。不要把整个根站跳转到東悍，也不要占用其他站点的 sitemap.xml 或 llms.txt。
+2026-10-15 已迁移至宝塔新 IP，根路径跳转到 `/donghan/`，robots 由该站点配置精确代理。新服务器迁移前没有其他已登记站点；旧服务器的其他网站保持不变。将来同一主机承载其他站点时，应合并并保留其抓取规则，不覆盖其他站点的地图或导航。
 
 ## 发布与验证
 
@@ -41,7 +41,7 @@ node scripts/uguest-qa.mjs
 
 SEO 验收在临时本机数据库中逐个检查 186 份模板及其两端元数据、规范链接、JSON-LD、网站地图排除项和栏目跳转；还验证新增草稿、发布、未发布再编辑、下架与 lastmod 的行为，以及 HTTP 咨询标识兼容。生产环境不插入验收内容。
 
-现有服务器先执行 `deploy/update.sh`。首次补充根 robots 路由时执行：
+新宝塔站点的根 robots 已由 `deploy/install-baota.sh` 配置，普通升级执行 `deploy/update.sh` 并保留 nginx。以下命令仅适用于旧 Ubuntu 的首次补充规则，不要在宝塔照搬：
 
 ```bash
 sudo python3 deploy/configure-robots.py --config /etc/nginx/sites-enabled/stool-shop

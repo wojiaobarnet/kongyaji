@@ -1,16 +1,16 @@
 # 東悍 donghan 网站与内容管理后台
 
-网站已部署到 Ubuntu 服务器，电脑前台、手机版、后台、SQLite 与本地图片存储正常运行。
+网站当前部署在 43.128.69.6 的宝塔 Linux 面板服务器，使用 OpenCloudOS 9.6、宝塔 Nginx 1.30.6 和 Node 24.21.0。前台、手机版、后台、SQLite 与图片存储正常运行。
 
-- **前台：** http://159.75.67.132/donghan/
-- **手机版：** http://159.75.67.132/donghan/mobile/
-- **选型指南：** http://159.75.67.132/donghan/guide/ 。[SEO/GEO 说明](docs/SEO-GEO.md) · [网站地图](http://159.75.67.132/donghan/sitemap.xml)。
-- **后台：** http://159.75.67.132/donghan/uguest/ 。账号 `admin`，初始密码仅保存在服务器私有文件中。
+- **前台：** http://43.128.69.6/donghan/
+- **手机版：** http://43.128.69.6/donghan/mobile/
+- **选型指南：** http://43.128.69.6/donghan/guide/ 。[SEO/GEO 说明](docs/SEO-GEO.md) · [网站地图](http://43.128.69.6/donghan/sitemap.xml)。
+- **后台：** http://43.128.69.6/donghan/uguest/ 。账号 `admin`，初始密码仅保存在服务器私有文件中。
 - **项目文档：** [Markdown](docs/项目文档.md) · [PDF](docs/项目文档.pdf) · [修改记录](docs/CHANGELOG.md)。
 - **接手与升级：** [部署交接](docs/给接手AI的部署说明.txt) · [部署说明](deploy/README.md)。
 - **最新完整源码：** [下载 main 分支](https://github.com/wojiaobarnet/kongyaji/archive/refs/heads/main.zip)。[历史交付包](deliverables/README.md) 是初始快照。
 
-旧 8088 地址自动跳转到 `/donghan/`；旧 `/donghan/admin/` 已返回 404。原服务器其它网站保留。当前为 HTTP，HTTPS 尚未配置。
+新 IP 根路径自动跳转到 `/donghan/`；`/donghan/admin/` 返回 404。新服务器不开放 8088，后端 8010 仅监听回环地址。旧服务器 159.75.67.132 保留运行，未设置跨服务器跳转，数据不自动同步；后续编辑使用新后台。当前为 HTTP。
 
 ## 构建与维护
 
@@ -24,11 +24,11 @@ node scripts/uguest-qa.mjs
 npm run test:seo
 ```
 
-构建需要 Python 3 与 Node 22.13+；运行 Ubuntu 后端使用 Node 24。当前服务配置为 `PUBLIC_URL=http://159.75.67.132`、`BASE_PATH=/donghan`、`ADMIN_PATH=/uguest`。
+构建需要 Python 3 与 Node 22.13+；运行 Linux 独立后端使用 Node 24。当前服务配置为 `PUBLIC_URL=http://43.128.69.6`、`BASE_PATH=/donghan`、`ADMIN_PATH=/uguest`。
 
 现有服务器升级：在独立的已构建完整包目录执行 `sudo bash deploy/update.sh`。保留 `/var/lib/donghan`，保留既有 nginx 和上述环境配置；不要使用默认首次安装脚本覆盖现有路由。
 
-每次修改必须同步源码、项目 Markdown/PDF、部署说明、CHANGELOG，并将同一变更同步到 GitHub。维护要求见 [AGENTS.md](AGENTS.md)。
+宝塔首次迁移见 [宝塔部署说明](deploy/README.md) 和 [迁移记录](docs/宝塔迁移说明.md)。每次修改同步源码、项目 Markdown/PDF、部署说明、CHANGELOG 与 GitHub；维护要求见 [AGENTS.md](AGENTS.md)。
 
 ## 原始镜像与开发说明
 
@@ -97,7 +97,7 @@ PLAYWRIGHT_MODULE=/absolute/path/to/playwright/index.mjs CHROMIUM_PATH=/absolute
 
 `build/sites-vite-plugin.ts` 为 Sites 模板中的 MIT 授权构建集成；原站快照的品牌、内容和图片保留原有归属。
 
-## 内容管理后台
+## 原 Sites 托管版内容管理说明
 
 后台入口：`/admin/`。线上使用网站所有者的 ChatGPT 账号登录；管理员邮箱由 Sites 的服务端 `CMS_ADMIN_EMAIL` 配置授权。匿名访客、其他账号不能访问管理页面或管理 API。网站分享范围保持原有设置。
 
@@ -124,7 +124,7 @@ PLAYWRIGHT_MODULE=/absolute/path/to/playwright/index.mjs node scripts/cms-browse
 API验收覆盖草稿隔离、两端发布、同时编辑冲突、富文本清理、新增/下架、历史恢复、上传、设置及留言跟进。浏览器验收覆盖后台编辑与手机布局。验收只写入本地数据库，不向线上数据库或原站发送内容。
 
 
-## Ubuntu 服务器版本
+## Linux 服务器版本（原 Ubuntu 部署）
 
 站点名称为 `donghan`。通过 [部署说明](deploy/README.md) 使用 Node 24、SQLite 和本地图片存储运行；服务器使用独立后台账号，支持修改密码。前台及后台已替换为東悍品牌，轮播图提供对应的品牌替换资源。
 
