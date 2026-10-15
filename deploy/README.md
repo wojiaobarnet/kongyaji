@@ -60,3 +60,9 @@ cat /var/www/donghan/current/REVISION
 验收前台、手机版、后台、预览、图片与留言；业务写入测试只用临时 DATA_ROOT。`npm run test:seo` 验证规范网址、JSON-LD、动态地图、草稿隔离和 noindex；`node scripts/uguest-qa.mjs` 验证认证、发布、图片和持久化。生产验证原密码登录、数据完整性、根 robots、187 个地图页面及新 IP canonical。
 
 每次修改同步源码、完整项目 Markdown/PDF、部署交接、CHANGELOG 与 GitHub，并将同一提交号记录到服务器 REVISION。详细记录见 `docs/宝塔迁移说明.md`，内容策略见 `docs/SEO-GEO.md`。
+
+## 每次更新的完成标准
+
+所有更新必须同时写 CHANGELOG、更新项目 Markdown/PDF 及 docs/操作手册.md，再将本次相关文件部署到 43.128.69.6 和同步 GitHub。手册步骤不变也记录已核对；纯文档变更校验文档及运行代码哈希，不重复无关测试。使用可恢复 release，保留持久数据。
+
+验收线上行为、文件 SHA256 与 current/REVISION 后，向 /var/www/donghan/deployment-log.jsonl 追加脱敏记录（时间、目标、提交、发布、文件、验证、旧版本/备份），权限 600、位于网站资源目录之外。记录实际结果，失败或只完成部分同步必须说明。后台内容已发布到生产数据库的，验证前台并补齐记录，不把数据库、留言或密码推送 GitHub。具体执行步骤见操作手册第 6 节。

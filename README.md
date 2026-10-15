@@ -6,7 +6,7 @@
 - **手机版：** http://43.128.69.6/donghan/mobile/
 - **选型指南：** http://43.128.69.6/donghan/guide/ 。[SEO/GEO 说明](docs/SEO-GEO.md) · [网站地图](http://43.128.69.6/donghan/sitemap.xml)。
 - **后台：** http://43.128.69.6/donghan/uguest/ 。账号 `admin`，初始密码仅保存在服务器私有文件中。
-- **项目文档：** [Markdown](docs/项目文档.md) · [PDF](docs/项目文档.pdf) · [修改记录](docs/CHANGELOG.md)。
+- **项目文档：** [Markdown](docs/项目文档.md) · [PDF](docs/项目文档.pdf) · [修改记录](docs/CHANGELOG.md) · [操作手册](docs/操作手册.md)。
 - **接手与升级：** [部署交接](docs/给接手AI的部署说明.txt) · [部署说明](deploy/README.md)。
 - **最新完整源码：** [下载 main 分支](https://github.com/wojiaobarnet/kongyaji/archive/refs/heads/main.zip)。[历史交付包](deliverables/README.md) 是初始快照。
 
@@ -28,7 +28,7 @@ npm run test:seo
 
 现有服务器升级：在独立的已构建完整包目录执行 `sudo bash deploy/update.sh`。保留 `/var/lib/donghan`，保留既有 nginx 和上述环境配置；不要使用默认首次安装脚本覆盖现有路由。
 
-宝塔首次迁移见 [宝塔部署说明](deploy/README.md) 和 [迁移记录](docs/宝塔迁移说明.md)。每次修改同步源码、项目 Markdown/PDF、部署说明、CHANGELOG 与 GitHub；维护要求见 [AGENTS.md](AGENTS.md)。
+宝塔首次迁移见 [宝塔部署说明](deploy/README.md) 和 [迁移记录](docs/宝塔迁移说明.md)。每次更新必须写变更日志、更新项目 Markdown/PDF 和操作手册，并把相关变动同步到主服务器及 GitHub，核对线上版本后才算完成；维护要求见 [AGENTS.md](AGENTS.md)。
 
 ## 原始镜像与开发说明
 

@@ -4,9 +4,10 @@
 
 1. [给接手 AI 的部署说明](给接手AI的部署说明.txt)
 2. [完整 Markdown 项目文档](项目文档.md) 与 [PDF](项目文档.pdf)
-3. [部署与升级](../deploy/README.md)
-4. [SEO 与 GEO 维护说明](SEO-GEO.md)
-5. [宝塔迁移说明](宝塔迁移说明.md)
-6. [逐次修改记录](CHANGELOG.md) 与 [维护约定](../AGENTS.md)
+3. [网站与维护操作手册](操作手册.md)
+4. [部署与升级](../deploy/README.md)
+5. [SEO 与 GEO 维护说明](SEO-GEO.md)
+6. [宝塔迁移说明](宝塔迁移说明.md)
+7. [逐次修改记录](CHANGELOG.md) 与 [维护约定](../AGENTS.md)
 
-最新完整源码取 GitHub main 分支；历史 `deliverables/` ZIP 是初始交付快照，校验清单只对应这些快照。每次修改同步源码、Markdown、PDF 与 GitHub。仓库不包含 SSH 私钥、生产密码、数据库或用户上传数据。
+最新完整源码取 GitHub main 分支；历史 `deliverables/` ZIP 是初始交付快照，校验清单只对应这些快照。每次更新同步变更日志、项目 Markdown/PDF、操作手册、相关源码、主服务器与 GitHub，验证成功后才算完成。仓库不包含 SSH 私钥、生产密码、数据库或用户上传数据。

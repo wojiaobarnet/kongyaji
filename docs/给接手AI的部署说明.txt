@@ -31,3 +31,5 @@ SEO/GEO 仍使用 worker/seo.js 和已发布内容；canonical、分享和地图
 
 每次修改同步代码、Markdown/PDF、README、交接和 CHANGELOG 到 wojiaobarnet/kongyaji，并核对远端提交和服务器 REVISION。
 不得发布 SSH 私钥、密码、会话密钥、数据库、用户上传、访问日志或浏览器登录状态。实际公司资料、联系方式、资质和历史案例仍待所有者核实。
+
+新增强制维护要求（2026-10-15）：每次更新都要写 docs/CHANGELOG.md、项目 Markdown/PDF 和 docs/操作手册.md，并把所有本次相关源码/资源/配置模板/文档同步到主服务器 43.128.69.6 及 GitHub。无操作变化也在手册记录已核对。纯文档变更也须部署，但无须重复无关业务测试。校验线上行为、文件 SHA256 与 REVISION，并追加服务器 /var/www/donghan/deployment-log.jsonl 脱敏记录。失败必须如实报告。后台内容直接写生产库，核对前台并记录，禁止将数据库、客户数据或密码上传 GitHub。

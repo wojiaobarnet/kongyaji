@@ -1,9 +1,13 @@
 # Project maintenance
 
-The owner requires every website change to be synchronized with the project documentation and this GitHub repository.
+The owner requires every update to include a change log, project documentation, an operator manual, deployment to the primary server, and GitHub synchronization. This applies to code, content, assets, configuration, routes, deployment, and documentation-only changes performed for this project.
 
 - Update `README.md`, `deploy/README.md`, `docs/给接手AI的部署说明.txt`, and relevant sections of `docs/项目文档.md` whenever behavior, deployment, routes, or maintenance steps change.
 - Regenerate `docs/项目文档.pdf` from the Markdown and visually check it. Record each change and its validation in `docs/CHANGELOG.md`.
+- Update `docs/操作手册.md` on every update. Document the actual user/maintenance steps and limitations. If the steps did not change, explicitly record that they were reviewed and remain unchanged; do not invent new features.
+- Deploy all changed public source/assets/configuration templates and all updated documentation to the verified primary server as one recoverable release. Do not stop at local files or a GitHub push. Preserve production data and use the existing update/atomic-release procedure. CMS changes already published to the production database must be verified there; never replace live data with an old snapshot or publish the database to GitHub.
+- After deployment, verify the live behavior and file hashes, match the server `REVISION` to the published GitHub commit, and append a sanitized record to `/var/www/donghan/deployment-log.jsonl` containing the date/time, target, release, commit, changed files, verification outcome, and backup/previous release. Failed or partial deployment must be reported as such and must not be described as synchronized.
+- Each change-log entry must state why/what changed, affected files or behavior, validation, deployment destination/result, and recovery information. Keep the project document, operator manual, repository log, and server copy consistent. A documentation-only update still requires documentation deployment and verification, but does not require repeating unrelated application tests.
 - Commit and publish code and documentation together to `wojiaobarnet/kongyaji`, preserving unrelated upstream changes. Verify the published commit and its files. Report publication blockers rather than claiming a local-only change was synchronized.
 - Never commit SSH keys, administrator passwords, production secrets, databases, uploads, browser sessions, or test data.
 - Preserve `/donghan/`, `/donghan/uguest/`, existing server sites, and `/var/lib/donghan` unless the owner requests a change.
