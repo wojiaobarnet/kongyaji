@@ -1,0 +1,9 @@
+[Unit]
+Description=Run Donghan SEO maintenance daily at 03:30 Asia/Shanghai
+[Timer]
+OnCalendar=*-*-* 03:30:00 Asia/Shanghai
+Persistent=true
+AccuracySec=1min
+Unit=donghan-seo.service
+[Install]
+WantedBy=timers.target

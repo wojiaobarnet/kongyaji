@@ -28,9 +28,9 @@ export async function mountResponse(response,basePath,origin,adminPath='/admin')
  const type=headers.get('content-type')||'';
  if(!response.body)return new Response(null,{status:response.status,headers});
  if(type.includes('text/html')){
-  const rewriter=new HTMLRewriter().on('head',{element(e){e.prepend('<script>window.DONGHAN_BASE_PATH='+JSON.stringify(basePath)+';window.DONGHAN_ADMIN_PATH='+JSON.stringify(adminPath)+';</script><script src="'+basePath+'/replica/site-path.js?v=20261013-seo"></script>',{html:true});}});
+  const rewriter=new HTMLRewriter().on('head',{element(e){e.prepend('<script>window.DONGHAN_BASE_PATH='+JSON.stringify(basePath)+';window.DONGHAN_ADMIN_PATH='+JSON.stringify(adminPath)+';</script><script src="'+basePath+'/replica/site-path.js?v=20261015-seo-center"></script>',{html:true});}});
   rewriter.on('*',{element(e){
-   for(const attr of ['href','src','action','poster']){const value=e.getAttribute(attr);if(value!==null){let mounted=mountUrl(value,basePath,origin,adminPath);if(attr==='src'&&/\/(?:admin|replica)\/[^?#]+\.js$/.test(value))mounted+='?v=20261013-seo';e.setAttribute(attr,mounted);}}
+   for(const attr of ['href','src','action','poster']){const value=e.getAttribute(attr);if(value!==null){let mounted=mountUrl(value,basePath,origin,adminPath);if(/\/(?:admin|replica)\/[^?#]+\.(?:js|css)$/.test(value))mounted+='?v=20261015-seo-center';e.setAttribute(attr,mounted);}}
    const srcset=e.getAttribute('srcset');if(srcset&&!srcset.includes('data:'))e.setAttribute('srcset',srcset.split(',').map(item=>item.trim().replace(/^\S+/,url=>mountUrl(url,basePath,origin))).join(', '));
    const style=e.getAttribute('style');if(style)e.setAttribute('style',mountCss(style,basePath,origin));
   }});

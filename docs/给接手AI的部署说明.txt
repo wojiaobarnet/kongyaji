@@ -33,3 +33,6 @@ SEO/GEO 仍使用 worker/seo.js 和已发布内容；canonical、分享和地图
 不得发布 SSH 私钥、密码、会话密钥、数据库、用户上传、访问日志或浏览器登录状态。实际公司资料、联系方式、资质和历史案例仍待所有者核实。
 
 新增强制维护要求（2026-10-15）：每次更新都要写 docs/CHANGELOG.md、项目 Markdown/PDF 和 docs/操作手册.md，并把所有本次相关源码/资源/配置模板/文档同步到主服务器 43.128.69.6 及 GitHub。无操作变化也在手册记录已核对。纯文档变更也须部署，但无须重复无关业务测试。校验线上行为、文件 SHA256 与 REVISION，并追加服务器 /var/www/donghan/deployment-log.jsonl 脱敏记录。失败必须如实报告。后台内容直接写生产库，核对前台并记录，禁止将数据库、客户数据或密码上传 GitHub。
+
+SEO 新增（2026-10-15）：后台 /donghan/uguest/#seo。server/seo-center.mjs 存储检查、自动元数据、动作及匿名请求聚合于 /var/lib/donghan/seo.sqlite，不能放入 GitHub。server/seo-daily.mjs 由 donghan-seo.timer 每天 Asia/Shanghai 03:30 执行，漏跑补跑，服务用户 donghan，无第三方付费接口。首次安装 bash current/deploy/install-seo.sh 后实际 start donghan-seo.service；检查 list-timers、服务 Result、后台结果和 187 个规范页。后台实时读 systemd，manual POST 需登录和同源。
+自动修复只动可确定的历史模板标题/摘要覆盖层，保留人工发布元数据和真实更新时间，失败复查恢复原覆盖值；公开地图始终按内容实时生成。H1、未知图片含义和重复内容等问题保留人工核对。访问数据是匿名页面 GET 请求，非人数或搜索排名；站长平台未连接。server/backup.mjs 已同时备份 seo.sqlite，更新切换先停运行中的 SEO 服务；回退到无 SEO 版本时先禁用 timer，保留私有运行库。详见 docs/SEO自动运维.md。

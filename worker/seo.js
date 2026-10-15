@@ -23,7 +23,9 @@ export function metadata(meta, baseline = meta) {
  return {title:title.slice(0,120), description:description.slice(0,180)};
 }
 export function seoHead(request, env, meta, baseline = meta, mobile = false) {
- const {title,description} = metadata(meta,baseline), canonical = publicUrl(request,env,meta.desktop), home=publicUrl(request,env);
+ const initial=metadata(meta,baseline);
+ const {title,description} = env.SEO_METADATA ? env.SEO_METADATA(meta,baseline,initial) : initial;
+ const canonical = publicUrl(request,env,meta.desktop), home=publicUrl(request,env);
  const graph = [
   {'@type':'WebSite','@id':home+'#website',url:home,name:'東悍空压机',inLanguage:'zh-CN'},
   {'@type':'WebPage','@id':canonical+'#webpage',url:canonical,name:title,description,inLanguage:'zh-CN',isPartOf:{'@id':home+'#website'},...(meta.modified?{dateModified:meta.modified}:{})}

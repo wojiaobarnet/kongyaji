@@ -66,3 +66,11 @@ cat /var/www/donghan/current/REVISION
 所有更新必须同时写 CHANGELOG、更新项目 Markdown/PDF 及 docs/操作手册.md，再将本次相关文件部署到 43.128.69.6 和同步 GitHub。手册步骤不变也记录已核对；纯文档变更校验文档及运行代码哈希，不重复无关测试。使用可恢复 release，保留持久数据。
 
 验收线上行为、文件 SHA256 与 current/REVISION 后，向 /var/www/donghan/deployment-log.jsonl 追加脱敏记录（时间、目标、提交、发布、文件、验证、旧版本/备份），权限 600、位于网站资源目录之外。记录实际结果，失败或只完成部分同步必须说明。后台内容已发布到生产数据库的，验证前台并补齐记录，不把数据库、留言或密码推送 GitHub。具体执行步骤见操作手册第 6 节。
+
+## SEO 每日任务与持久数据
+
+部署包含 SEO 中心的新 release 后，以 root 执行 `bash /var/www/donghan/current/deploy/install-seo.sh`，再用 `systemctl start donghan-seo.service` 完成首次实际检查。安装器备份旧计划配置并验证 unit；每日北京时间 03:30，Persistent=true 补跑。用 `systemctl list-timers donghan-seo.timer`、`systemctl show donghan-seo.service -p Result -p ExecMainStatus` 和后台 SEO 中心核对实际结果。后台读取 systemd 实时状态，不能只看配置文件声称已运行。
+
+访问聚合、检查、动作和自动元数据在 /var/lib/donghan/seo.sqlite，属于运行数据，不能提交 GitHub。新版 server/backup.mjs 同时一致性备份 content.sqlite 和存在的 seo.sqlite；另保留管理员配置、uploads 和 timer/service 配置。更新切换前停止正在执行的 SEO oneshot，保留 timer；新旧版本切换仍须检查任务兼容。回退到不含 SEO 的旧版时先停止并禁用 donghan-seo.timer，保留运行数据库，不能用旧空快照覆盖生产数据。详细恢复边界见 docs/SEO自动运维.md。
+
+每天的检查、按需元数据优化及日志在服务器私有运行库持续记录；不持有 GitHub 凭证，不把访问数据推送仓库。源码、策略、界面或配置变更仍执行本项目每次更新的文档与服务器/GitHub 同步要求。

@@ -7,6 +7,7 @@ import {createHmac,randomBytes,scryptSync,timingSafeEqual} from 'node:crypto';
 import {HTMLRewriter} from '@worker-tools/html-rewriter/base64';
 import worker from '../worker/index.js';
 import {mountResponse} from './mount.mjs';
+import {SeoCenter} from './seo-center.mjs';
 
 globalThis.HTMLRewriter=HTMLRewriter;
 const ROOT=path.resolve(import.meta.dirname,'..');
@@ -38,6 +39,8 @@ const env={PUBLIC_URL,BASE_PATH,ADMIN_PATH,CMS_ADMIN_EMAIL:'admin@donghan.local'
  BUCKET:{async put(key,bytes){if(!/^[\w.-]+$/.test(key))throw new Error('Invalid object key');const file=path.join(DATA_ROOT,'uploads',key),tmp=file+'.tmp-'+randomBytes(6).toString('hex');await writeFile(tmp,bytes,{mode:0o600});await rename(tmp,file);},async get(key){if(!/^[\w.-]+$/.test(key))return null;try{const data=await readFile(path.join(DATA_ROOT,'uploads',key));return {body:data,writeHttpMetadata:h=>h.set('Content-Type',types[path.extname(key)]||'application/octet-stream')};}catch{return null;}},async delete(key){if(/^[\w.-]+$/.test(key))await unlink(path.join(DATA_ROOT,'uploads',key)).catch(()=>{});}}
 };
 const cookieName='donghan_session';
+const seo=new SeoCenter({dataRoot:DATA_ROOT,publicUrl:PUBLIC_URL,basePath:BASE_PATH,port:PORT});
+env.SEO_METADATA=(meta,baseline,result)=>seo.metadata(meta,baseline,result);
 const sign=value=>createHmac('sha256',config.sessionKey).update(value).digest('base64url');
 function authenticated(request){const cookie=request.headers.get('cookie')?.split(';').map(s=>s.trim()).find(s=>s.startsWith(cookieName+'='))?.slice(cookieName.length+1);if(!cookie)return false;const [value,signature]=cookie.split('.');if(!value||!signature)return false;const expected=sign(value);if(signature.length!==expected.length||!timingSafeEqual(Buffer.from(signature),Buffer.from(expected)))return false;try{const session=JSON.parse(Buffer.from(value,'base64url'));return session.user===config.username&&session.exp>Date.now();}catch{return false;}}
 const loginPage=(error='')=>`<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>東悍 · 管理员登录</title><style>*{box-sizing:border-box}body{margin:0;background:#f3f6fb;color:#20354e;font:14px system-ui,"Microsoft Yahei",sans-serif;min-height:100vh;display:grid;place-items:center}main{width:calc(100% - 40px);max-width:400px;border:1px solid #e3eaf3;background:white;border-radius:16px;padding:36px;box-shadow:0 16px 60px #17324f0d}img{width:100%;margin-bottom:25px}h1{font-size:22px;margin:0 0 10px}p{color:#8593a5;line-height:1.8}label{display:block;margin:24px 0 8px;font-size:13px}input,button{font:inherit;width:100%;border-radius:8px;padding:13px;border:1px solid #dce4ed}button{margin-top:26px;background:#1670d7;border:0;color:white;cursor:pointer}.error{color:#b74242}</style></head><body><main><img src="/replica/donghan-logo.svg" alt="東悍空压机"><h1>内容管理工作台</h1><p>使用管理员账号登录，管理网站内容与客户留言。</p>${error?'<p class="error">'+error+'</p>':''}<form action="/admin/login" method="post"><label for="username">账号</label><input id="username" name="username" autocomplete="username" required maxlength="100"><label for="password">密码</label><input id="password" name="password" type="password" autocomplete="current-password" required maxlength="200"><button>登录后台</button></form></main></body></html>`;
@@ -61,6 +64,13 @@ async function handle(request,client){
  if(pathname==='/api/admin/logout'&&request.method==='POST'){if(origin&&origin!==url.origin)return json({error:'请求来源无效'},403);return new Response(null,{status:303,headers:{Location:'/admin/login','Set-Cookie':cookieName+'=; Path=/; HttpOnly; SameSite=Strict; Max-Age=0'}});}
  const admin=pathname==='/admin'||pathname.startsWith('/admin/')||pathname.startsWith('/api/admin/');
  if(admin&&!valid)return pathname.startsWith('/api/')?json({error:'登录已过期，请重新登录后台。'},401):new Response(null,{status:302,headers:{Location:'/admin/login'}});
+ if(pathname==='/api/admin/seo'&&request.method==='GET')return json(seo.summary());
+ if(pathname==='/api/admin/seo/run'){
+  if(request.method!=='POST')return json({error:'请使用 POST 请求。'},405);
+  if(origin!==url.origin||request.headers.get('Sec-Fetch-Site')==='cross-site')return json({error:'请求来源无效。'},403);
+  if(seo.db.prepare("SELECT id FROM seo_runs WHERE status='running' AND started_at>?").get(new Date(Date.now()-25*60000).toISOString()))return json({error:'已有检查正在执行，请稍后刷新。'},409);
+  void seo.run('manual').catch(e=>console.error('SEO manual failed:',e.message));return json({ok:true,message:'检查已开始，请稍后刷新查看结果。'},202);
+ }
  if(pathname==='/api/admin/password'&&request.method==='POST'){
   if(origin&&origin!==url.origin||request.headers.get('Sec-Fetch-Site')==='cross-site')return json({error:'请求来源无效。'},403);
   let input;try{input=await request.json();}catch{return json({error:'提交格式不正确。'},400);}
@@ -89,10 +99,11 @@ const server=http.createServer(async(req,res)=>{
   const headers=new Headers();for(const [key,value]of Object.entries(req.headers))if(value!==undefined)headers.set(key,Array.isArray(value)?value.join(','):value);
   const request=new Request(url,{method:req.method,headers,body:['GET','HEAD'].includes(req.method)?undefined:Buffer.concat(chunks)});
   let result=await handle(request,req.headers['x-real-ip']||req.socket.remoteAddress);
-  if(result.status>=400||/^\/(?:admin|api|cms)(?:\/|$)/.test(url.pathname)||url.pathname==='/healthz'){const h=new Headers(result.headers);h.set('X-Robots-Tag','noindex, nofollow');result=new Response(result.body,{status:result.status,headers:h});}
+  seo.track(request,result,authenticated(request));
+  if(result.status>=400||/^\/(?:admin|api|cms)(?:\/|$)/.test(url.pathname)||url.pathname==='/healthz'){const h=new Headers(result.headers);h.set('X-Robots-Tag','noindex, nofollow');h.set('Cache-Control','no-store');result=new Response(result.body,{status:result.status,headers:h});}
   const response=await mountResponse(result,BASE_PATH,new URL(origin).origin,ADMIN_PATH);res.writeHead(response.status,Object.fromEntries(response.headers));if(req.method==='HEAD'){res.end();return;}if(!response.body){res.end();return;}for await(const chunk of response.body)if(!res.write(chunk))await new Promise(resolve=>res.once('drain',resolve));res.end();
  }catch(error){console.error('Request failed:',error.message);if(!res.headersSent)res.writeHead(500,{'Content-Type':'text/plain; charset=utf-8'});res.end('服务暂不可用，请稍后重试。');}
 });
 server.requestTimeout=120000;server.headersTimeout=15000;
 server.listen(PORT,'127.0.0.1',()=>console.log('東悍 server listening on 127.0.0.1:'+PORT));
-for(const signal of ['SIGTERM','SIGINT'])process.on(signal,()=>server.close(()=>{db.close();process.exit(0);}));
+for(const signal of ['SIGTERM','SIGINT'])process.on(signal,()=>server.close(()=>{seo.close();db.close();process.exit(0);}));

@@ -41,6 +41,8 @@ rollback() {
  exit 1
 }
 trap rollback ERR
+# A running daily job must not continue against a different release during a switch.
+if systemctl is-active --quiet donghan-seo.service; then systemctl stop donghan-seo.service; fi
 ln -sfn "$DEST" "$BASE/current.next"
 mv -Tf "$BASE/current.next" "$BASE/current"
 systemctl restart donghan

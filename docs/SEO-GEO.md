@@ -67,3 +67,11 @@ sudo python3 deploy/configure-robots.py --config /etc/nginx/sites-enabled/stool-
 - [Google：构建网站地图](https://developers.google.com/search/docs/crawling-indexing/sitemaps/build-sitemap) —— 规范网址及可信修改日期。
 - [Bing：站长指南](https://www.bing.com/webmasters/help/bing-webmaster-guidelines-30fba23a) —— 搜索与 AI 引用依赖可抓取、可靠的内容。
 - [美国能源部：压缩空气系统资料](https://www.energy.gov/sites/prod/files/2014/05/f16/compressed_air_sourcebook.pdf) —— 通用工况需求整理的参考资料，不是本网站产品背书。
+
+## 2026-10-15：SEO 中心与每日自动维护
+
+新增后台 SEO 中心与服务器原生 systemd 每日任务（北京时间 03:30，漏跑补跑）。逐项检查地图中的公开规范页面：状态码、标题/摘要、canonical、robots noindex、JSON-LD、H1、图片 alt、重复元数据；每日任务还经过 Nginx 核对主机根 robots。仅对可确定的历史模板元数据按需修复，取材于现有公开页面，人工发布内容优先，复查失败恢复原值。不创建虚构文章、排名、资质、评价或内容更新时间。
+
+后台提供站内技术检查指标、请求趋势、来源、爬虫声明、页面问题、动作前后值及运行状态；技术分数是本项目规则的内部指标，不代表搜索排名。统计从启用时开始，不导入旧机日志，不存 IP、完整 User-Agent、查询参数、Cookie 或完整 Referer。只做匿名请求聚合，排除本检查器、常见自动化和登录管理员；仍不能完全识别自动化或计算独立访客。
+
+数据与恢复详见 docs/SEO自动运维.md。未连接 Search Console 或其它站长平台，搜索曝光、结果点击、收录和关键词排名保持“暂无数据”。Google 的官方建议仍以可抓取、清楚有用的内容为主，不把每日改写或特殊 AI 文本文件当作排名保证。

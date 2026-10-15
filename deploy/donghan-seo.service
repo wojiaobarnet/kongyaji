@@ -1,0 +1,23 @@
+[Unit]
+Description=Donghan daily SEO audit and safe metadata optimization
+After=donghan.service
+Requires=donghan.service
+[Service]
+Type=oneshot
+User=donghan
+Group=donghan
+WorkingDirectory=/var/www/donghan/current
+Environment=DATA_ROOT=/var/lib/donghan
+Environment=PUBLIC_URL=http://43.128.69.6
+Environment=BASE_PATH=/donghan
+Environment=PORT=8010
+Environment=SEO_PROXY_PORT=80
+ExecStartPre=/usr/bin/curl --fail --silent --show-error --max-time 5 --retry 5 --retry-connrefused --retry-delay 2 http://127.0.0.1:8010/donghan/healthz
+ExecStart=/opt/donghan/node-24.21.0/bin/node /var/www/donghan/current/server/seo-daily.mjs
+TimeoutStartSec=20min
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/donghan

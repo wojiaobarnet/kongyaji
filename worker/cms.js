@@ -207,6 +207,10 @@ export async function renderPage(request,env,path,preview=null){
  if(preview)rewriter.on('head',{element:e=>e.prepend('<base href="'+escape(new URL(path,request.url).href)+'">'+previewScript(device),{html:true})});
  const originalMeta=c.documents.find(m=>m.id===id),seoMeta=doc?.meta||originalMeta;
  if(!preview&&seoMeta){
+  // Preserve intentional empty/decorative alt text; label CMS content images only.
+  rewriter.on('img[data-cms-role="cover"],img[data-cms-block]',{element(e){if(e.getAttribute('alt')===null)e.setAttribute('alt',escape(seoMeta.title));}});
+  let imageIndex=0;
+  rewriter.on('img',{element(e){imageIndex++;if(!e.getAttribute('decoding'))e.setAttribute('decoding','async');if(imageIndex>3&&!e.getAttribute('loading'))e.setAttribute('loading','lazy');}});
   rewriter.on('title,meta[name="description"],meta[name="keywords"],meta[name="robots"],link[rel="canonical"],link[rel="alternate"][media],meta[property^="og:"],meta[name^="twitter:"],script[type="application/ld+json"]',{element:e=>e.remove()});
   rewriter.on('head',{element:e=>e.append(seoHead(request,env,seoMeta,originalMeta||c.documents.find(m=>m.id===seoMeta.templateId)||base?.meta||seoMeta,device==='mobile'),{html:true})});
   if(seoMeta.kind==='home'){
