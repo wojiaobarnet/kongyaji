@@ -3,6 +3,16 @@ import {readFileSync,chmodSync} from 'node:fs';
 import path from 'node:path';
 import {randomUUID} from 'node:crypto';
 import {execFileSync} from 'node:child_process';
+import {get as httpGet} from 'node:http';
+
+export function proxyRobots(origin,port){
+ return new Promise((resolve,reject)=>{
+  const request=httpGet({hostname:'127.0.0.1',port,path:'/robots.txt',headers:{Host:new URL(origin).host,'User-Agent':'DonghanSEO/1.0'},timeout:12000},async response=>{
+   try{let body='';for await(const chunk of response){body+=chunk.toString();if(body.length>65536)throw new Error('根 robots 响应过大');}resolve({status:response.statusCode,body});}catch(e){response.destroy();reject(e);}
+  });
+  request.on('timeout',()=>request.destroy(new Error('根 robots 检查超时')));request.on('error',reject);
+ });
+}
 
 const clean=s=>String(s||'').replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,'').replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi,'').replace(/<[^>]+>/g,' ').replace(/&nbsp;|&#160;/g,' ').replace(/&amp;/g,'&').replace(/&quot;/g,'"').replace(/&#39;/g,"'").replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/\s+/g,' ').trim();
 const attr=(tag,name)=>tag.match(new RegExp('\\b'+name+'\\s*=\\s*(["\'])([\\s\\S]*?)\\1','i'))?.[2]||'';
@@ -107,8 +117,9 @@ export class SeoCenter {
    const robots=await request(this.base+'/robots.txt');if(robots.r.status!==200||!robots.body.includes('Sitemap: '+this.origin+this.base+'/sitemap.xml')||/Disallow:\s*\/\s*\n/.test(robots.body))throw new Error('抓取规则检查未通过');
    if(process.env.SEO_PROXY_PORT){
     const proxyPort=Number(process.env.SEO_PROXY_PORT);if(!Number.isInteger(proxyPort)||proxyPort<1||proxyPort>65535)throw new Error('代理端口配置无效');
-    const rootRobots=await fetch('http://127.0.0.1:'+proxyPort+'/robots.txt',{headers:{Host:new URL(this.origin).host,'User-Agent':'DonghanSEO/1.0'},redirect:'manual',signal:AbortSignal.timeout(12000)});
-    if(rootRobots.status!==200||!(await rootRobots.text()).includes('Sitemap: '+this.origin+this.base+'/sitemap.xml'))throw new Error('Nginx 根 robots 代理检查失败');
+    // Node fetch may replace Host; explicit http preserves virtual-host routing.
+    const rootRobots=await proxyRobots(this.origin,proxyPort);
+    if(rootRobots.status!==200||!rootRobots.body.includes('Sitemap: '+this.origin+this.base+'/sitemap.xml'))throw new Error('Nginx 根 robots 代理检查失败');
     action('proxy','/robots.txt','Nginx 根 robots 可访问，地图地址正确');
    }
    const catalogPath=path.join(process.env.ASSET_ROOT||path.resolve(import.meta.dirname,'../dist/client'),'cms/catalog.json');

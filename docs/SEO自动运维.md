@@ -60,3 +60,5 @@ systemctl stop donghan-seo.service
 升级切换 current 前先停仍在运行的 SEO service。回退至没有 SEO 中心的旧 release 时先停用 timer/service，切换到备份记录的旧路径并重启 donghan，检查前台、登录与健康；保留 SEO 库及生产内容库，不用初始空库覆盖。已存在的旧计划配置可从 install-seo.sh 输出的私有 backups 目录恢复，然后 daemon-reload 并核对；不要整份恢复共享 Nginx 配置。
 
 验证命令：npm run check、npm run test:seo、npm run test:seo-center，以及 node scripts/uguest-qa.mjs。新增测试覆盖真实修复/复查、人工优先、重复执行、互斥、失败持久化、跨站请求拦截、匿名统计、未登录访问和 CSRF；业务验收使用隔离数据库，生产不写验收内容。
+
+首次线上每日服务的本地 robots 检查因 Node fetch 未正确保留 Host 而命中宝塔默认站点 404，部署自动回退；已改用显式 HTTP 客户端保留虚拟主机，补充回归测试并在目标机验证 200 后重新部署。公网代理及生产数据未改。 本机代理检查使用 node:http 显式设置 Host，并有默认虚拟主机拒绝请求的回归用例。
