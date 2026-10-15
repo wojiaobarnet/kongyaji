@@ -15,10 +15,10 @@ Node /opt/donghan/node-24.21.0/bin/node；只监听 127.0.0.1:8010。
 访问日志 /www/wwwlogs/43.128.69.6.log。不要使用旧服务器的 /etc/nginx 路径。
 
 持久数据 /var/lib/donghan，包括 content.sqlite、uploads 和 admin.json。管理员配置从旧机原样迁入，账号 admin，密码不变。原始模板和 308 张素材在 dist/client，迁移时编辑、媒体上传、历史与留言表均为空，不能据此假定未来仍为空。
-迁移快照旧机 /var/www/donghan/backups/migrate-20261015-baota/；新机私有暂存 /var/lib/donghan-migration-20261015，均含私密数据，不公开。
+旧机迁移快照已随退役清理删除；新机私有暂存 /var/lib/donghan-migration-20261015 保留。旧项目恢复归档在新机 /var/backups/donghan-retired-159.75.67.132-20261015/recovery.tar.gz，目录 700、文件 600，含私密数据，不公开。
 首次部署 20261015T090006-baota，其 backups 目录保留初始 nginx 配置。最终交接发布 20261015T090649-baota-final，以 current 指向为准。
 
-旧 Ubuntu 服务器 159.75.67.132 继续运行，原有首页和其它站点未改变，未设置跨服务器跳转。两台数据不自动同步，后续编辑以新后台为准。旧版 /etc/nginx/sites-enabled/stool-shop 和 8088 只适用于旧机。
+2026-10-15 按所有者明确要求移除旧 Ubuntu 服务器 159.75.67.132 上的東悍服务、项目目录、数据库、专属 Node、临时包、代理及 8088 监听；原首页和其它站点保留且 7 个入口验证 200。旧 /donghan/ 不再提供本项目。后续编辑只用新后台，不向旧机重新部署。共享日志未清空。
 
 先读 AGENTS.md、docs/项目文档.md、deploy/README.md、docs/宝塔迁移说明.md 和 CHANGELOG，再核对服务器与 GitHub main。
 已有网站升级用独立构建包 deploy/update.sh，保留既有服务环境、nginx、数据和账号；不要从 current 直接升级。

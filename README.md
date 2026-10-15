@@ -10,7 +10,7 @@
 - **接手与升级：** [部署交接](docs/给接手AI的部署说明.txt) · [部署说明](deploy/README.md)。
 - **最新完整源码：** [下载 main 分支](https://github.com/wojiaobarnet/kongyaji/archive/refs/heads/main.zip)。[历史交付包](deliverables/README.md) 是初始快照。
 
-新 IP 根路径自动跳转到 `/donghan/`；`/donghan/admin/` 返回 404。新服务器不开放 8088，后端 8010 仅监听回环地址。旧服务器 159.75.67.132 保留运行，未设置跨服务器跳转，数据不自动同步；后续编辑使用新后台。当前为 HTTP。
+新 IP 根路径自动跳转到 `/donghan/`；`/donghan/admin/` 返回 404。新服务器不开放 8088，后端 8010 仅监听回环地址。2026-10-15 按所有者要求清理旧服务器 159.75.67.132 的東悍项目、数据及专属配置，保留其它网站；后续编辑仅使用新后台，恢复归档私下存放新机。当前为 HTTP。
 
 ## 构建与维护
 

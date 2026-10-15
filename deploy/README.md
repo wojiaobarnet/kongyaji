@@ -11,7 +11,7 @@
 - 代理 `/www/server/panel/vhost/nginx/43.128.69.6.conf`；二进制 `/www/server/nginx/sbin/nginx`；访问日志 `/www/wwwlogs/43.128.69.6.log`。
 - HTTP 根路径跳转 `/donghan/`，根 robots 精确代理至子站。新机不开放 8088。当前尚未配置 HTTPS。
 
-旧服务器 `159.75.67.132` 保留原站与原有其他网站，未设置跨服务器跳转。两台数据库不自动同步，后续编辑请使用新后台。
+旧服务器 `159.75.67.132` 的東悍项目已于 2026-10-15 按所有者要求退役，项目文件、数据、专属 Node、服务、代理与 8088 监听已移除；其它网站保留。后续维护只使用新后台。
 
 ## 宝塔首次迁移
 
@@ -21,7 +21,7 @@ Node 24.21.0 Linux x64 包与官方校验文件匹配，SHA256 为 `fd8e59d5a511
 
 从 GitHub main 构建：`npm ci`、`npm run build`、`npm run check`。迁移包需要 `dist/`、`worker/`、`server/`、`drizzle/`、生产 `node_modules/`、`package.json`、`deploy/` 和文档。若要在目标机器运行隔离验收，还需 `scripts/`、`assets/replica.js` 与 `source/desktop/public/images/logo.png` 测试资源。
 
-旧站运行中 SQLite 用 `server/backup.mjs` 创建一致性备份。管理员配置、数据库、initial-login.txt（若仍存在）及 uploads 只通过私有 SSH 传输，保留权限，不能进入 GitHub、公开包或日志。本次旧站快照 `/var/www/donghan/backups/migrate-20261015-baota/`，新机私有暂存 `/var/lib/donghan-migration-20261015`。
+旧站运行中 SQLite 用 `server/backup.mjs` 创建一致性备份。管理员配置、数据库、initial-login.txt（若仍存在）及 uploads 只通过私有 SSH 传输，保留权限，不能进入 GitHub、公开包或日志。迁移时的旧站快照已随旧机项目删除；新机私有暂存 `/var/lib/donghan-migration-20261015` 保留。清理前旧项目完整恢复归档已离机保存到新服务器 `/var/backups/donghan-retired-159.75.67.132-20261015/recovery.tar.gz`，目录 700、文件 600，并验证 SHA256、压缩归档及必要成员。
 
 先通过已安装面板的本地 AddSite API 登记站点，再安装程序：
 
